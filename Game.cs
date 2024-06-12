@@ -51,7 +51,7 @@ public class Game : GameWindow
         shader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
         shader.Use();
 
-        texture = Texture.LoadFromFile("Textures/redbrick.png");
+        texture = Texture.LoadFromFile("Textures/atlas.gif");
         texture.Use(TextureUnit.Texture0);
     }
 
@@ -69,11 +69,13 @@ public class Game : GameWindow
 
         for (int x = 0; x < Size.X; x++)
         {
-            var (lineHeight, cameraX, wallX, brightness) = Cast_Ray(x);
+            var (lineHeight, cameraX, wallX, brightness, texNum) = Cast_Ray(x);
 
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "height"), (float)lineHeight);
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "x"), (float)cameraX);
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "texX"), (float)wallX);
+            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "texNum"), (float)texNum);
+
 
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "brightness"), (float)brightness);
 
@@ -85,7 +87,7 @@ public class Game : GameWindow
         SwapBuffers();
     }
 
-    private (double, double, double, double) Cast_Ray(int x)
+    private (double, double, double, double, int) Cast_Ray(int x)
     {
         Debug.Assert(shader != null);
 
@@ -179,7 +181,7 @@ public class Game : GameWindow
         if (side == 0 && rayDirX > 0) wallX = 1 - wallX;
         if (side == 1 && rayDirY < 0) wallX = 1 - wallX;
 
-        return (lineHeight, cameraX, wallX, brightness);
+        return (lineHeight, cameraX, wallX, brightness, texNum);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
