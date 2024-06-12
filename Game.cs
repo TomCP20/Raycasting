@@ -91,92 +91,41 @@ public class Game : GameWindow
         Debug.Assert(shader != null);
 
         double cameraX = (x * 2.0 / Size.X) - 1.0; //x-coordinate in camera space
-                                                   //calculate ray position and direction
+        
+        //calculate ray position and direction
         double rayDirX = gameMap.player.DirX + gameMap.player.PlaneX * cameraX;
         double rayDirY = gameMap.player.DirY + gameMap.player.PlaneY * cameraX;
 
-        //which box of the map we're in
-        int mapX = (int)Math.Floor(gameMap.player.PosX);
-        int mapY = (int)Math.Floor(gameMap.player.PosY);
-
-        //length of ray from current position to next x or y-side
-        double sideDistX;
-        double sideDistY;
-
-        //length of ray from one x or y-side to next x or y-side
-        double deltaDistX = (Math.Abs(rayDirX) < 1e-8) ? 1e8 : Math.Abs(1 / rayDirX);
-        double deltaDistY = (Math.Abs(rayDirY) < 1e-8) ? 1e8 : Math.Abs(1 / rayDirY);
-        double perpWallDist;
-
-        //what direction to step in x or y-direction (either +1 or -1)
-        int stepX;
-        int stepY;
-
-        int hit = 0; //was there a wall hit?
-        int side = -1; //was a NS or a EW wall hit?
-
-        //calculate step and initial sideDist
-        if (rayDirX < 0)
-        {
-            stepX = -1;
-            sideDistX = (gameMap.player.PosX - mapX) * deltaDistX;
-        }
-        else
-        {
-            stepX = 1;
-            sideDistX = (mapX + 1.0 - gameMap.player.PosX) * deltaDistX;
-        }
-        if (rayDirY < 0)
-        {
-            stepY = -1;
-            sideDistY = (gameMap.player.PosY - mapY) * deltaDistY;
-        }
-        else
-        {
-            stepY = 1;
-            sideDistY = (mapY + 1.0 - gameMap.player.PosY) * deltaDistY;
-        }
+        Ray ray = new Ray(gameMap.player.PosX, gameMap.player.PosY, rayDirX, rayDirY);
 
         //perform DDA
-        while (hit == 0)
+        while (ray.hit == 0)
         {
             //jump to next map square, either in x-direction, or in y-direction
-            if (sideDistX < sideDistY)
-            {
-                sideDistX += deltaDistX;
-                mapX += stepX;
-                side = 0;
-            }
-            else
-            {
-                sideDistY += deltaDistY;
-                mapY += stepY;
-                side = 1;
-            }
+            ray.step();
             //Check if ray has hit a wall
-            if (gameMap.worldMap[mapX, mapY] > 0) hit = 1;
+            if (gameMap.worldMap[ray.mapX, ray.mapY] > 0) ray.hit = 1;
         }
 
         //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
-        if (side == 0) perpWallDist = Math.Abs(sideDistX - deltaDistX);
-        else perpWallDist = Math.Abs(sideDistY - deltaDistY);
+        double perpWallDist = ray.getPerpWallDist();
 
         //Calculate height of line to draw on screen
         double lineHeight = Size.Y / (perpWallDist * 250.0f);
 
         //texturing calculations
-        int texNum = gameMap.worldMap[mapX, mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+        int texNum = gameMap.worldMap[ray.mapX, ray.mapY] - 1; //1 subtracted from it so that texture 0 can be used!
 
         //calculate value of wallX
         double wallX; //where exactly the wall was hit
-        if (side == 0) wallX = gameMap.player.PosY + perpWallDist * rayDirY;
+        if (ray.side == 0) wallX = gameMap.player.PosY + perpWallDist * rayDirY;
         else wallX = gameMap.player.PosX + perpWallDist * rayDirX;
         wallX -= Math.Floor(wallX);
 
         //x coordinate on the texture
-        if ((side == 0 && rayDirX > 0) ^ (side == 1 && rayDirY < 0)) wallX = 1 - wallX;
+        if ((ray.side == 0 && rayDirX > 0) ^ (ray.side == 1 && rayDirY < 0)) wallX = 1 - wallX;
 
-        return (lineHeight, cameraX, wallX, side, texNum);
+        return (lineHeight, cameraX, wallX, ray.side, texNum);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
