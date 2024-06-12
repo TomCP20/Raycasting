@@ -11,7 +11,7 @@ uniform int texNum;
 
 void main()
 {
-    vec2 texCoord = vec2((texX + texNum)/11, texY);
+    vec2 texCoord = vec2(((texX*63+0.5)/64 + texNum)/11, texY);
 
     finalColor = texture(texture0, texCoord);
     if (isDark)
