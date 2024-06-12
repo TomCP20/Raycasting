@@ -69,15 +69,14 @@ public class Game : GameWindow
 
         for (int x = 0; x < Size.X; x++)
         {
-            var (lineHeight, cameraX, wallX, brightness, texNum) = Cast_Ray(x);
+            var (lineHeight, cameraX, wallX, isDark, texNum) = Cast_Ray(x);
 
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "height"), (float)lineHeight);
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "x"), (float)cameraX);
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "texX"), (float)wallX);
-            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "texNum"), (float)texNum);
+            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "texNum"), texNum);
 
-
-            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "brightness"), (float)brightness);
+            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "isDark"), isDark);
 
             //draw the pixels of the stripe as a vertical line
             GL.BindVertexArray(vertexArrayObject);
@@ -87,7 +86,7 @@ public class Game : GameWindow
         SwapBuffers();
     }
 
-    private (double, double, double, double, int) Cast_Ray(int x)
+    private (double, double, double, int, int) Cast_Ray(int x)
     {
         Debug.Assert(shader != null);
 
@@ -165,9 +164,6 @@ public class Game : GameWindow
         //Calculate height of line to draw on screen
         double lineHeight = Size.Y / (perpWallDist * 250.0f);
 
-        //give x and y sides different brightness
-        double brightness = (side == 1) ? 0.5: 1.0;
-
         //texturing calculations
         int texNum = gameMap.worldMap[mapX, mapY] - 1; //1 subtracted from it so that texture 0 can be used!
 
@@ -181,7 +177,7 @@ public class Game : GameWindow
         if (side == 0 && rayDirX > 0) wallX = 1 - wallX;
         if (side == 1 && rayDirY < 0) wallX = 1 - wallX;
 
-        return (lineHeight, cameraX, wallX, brightness, texNum);
+        return (lineHeight, cameraX, wallX, side, texNum);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)

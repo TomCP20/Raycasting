@@ -6,7 +6,7 @@ layout (location = 1) in float texY;
 uniform float height;
 uniform float x;
 uniform float texX;
-uniform float texNum;
+uniform int texNum;
 
 out vec2 texCoord;
 
