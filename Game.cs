@@ -99,12 +99,12 @@ public class Game : GameWindow
         Ray ray = new Ray(gameMap.player.PosX, gameMap.player.PosY, rayDirX, rayDirY);
 
         //perform DDA
-        while (ray.hit == 0)
+        while (true)
         {
             //jump to next map square, either in x-direction, or in y-direction
             ray.step();
             //Check if ray has hit a wall
-            if (gameMap.worldMap[ray.mapX, ray.mapY] > 0) ray.hit = 1;
+            if (gameMap.worldMap[ray.mapX, ray.mapY] > 0) break;
         }
 
         //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
@@ -117,13 +117,7 @@ public class Game : GameWindow
         int texNum = gameMap.worldMap[ray.mapX, ray.mapY] - 1; //1 subtracted from it so that texture 0 can be used!
 
         //calculate value of wallX
-        double wallX; //where exactly the wall was hit
-        if (ray.side == 0) wallX = gameMap.player.PosY + perpWallDist * rayDirY;
-        else wallX = gameMap.player.PosX + perpWallDist * rayDirX;
-        wallX -= Math.Floor(wallX);
-
-        //x coordinate on the texture
-        if ((ray.side == 0 && rayDirX > 0) ^ (ray.side == 1 && rayDirY < 0)) wallX = 1 - wallX;
+        double wallX = ray.getWallX(perpWallDist);
 
         return (lineHeight, cameraX, wallX, ray.side, texNum);
     }
