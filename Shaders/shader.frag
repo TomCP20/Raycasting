@@ -2,13 +2,17 @@
 
 out vec4 finalColor;
 
-in vec2 texCoord;
+in float texY;
 
 uniform sampler2D texture0;
 uniform bool isDark;
+uniform float texX;
+uniform int texNum;
 
 void main()
 {
+    vec2 texCoord = vec2((texX + texNum)/11, texY);
+
     finalColor = texture(texture0, texCoord);
     if (isDark)
     {
