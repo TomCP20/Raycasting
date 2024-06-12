@@ -11,11 +11,11 @@ public class Game : GameWindow
 {
     private readonly GameMap gameMap = new GameMap();
 
-    readonly float[] vertices = 
+    readonly float[] vertices =
     {
-        //y pos
-         0.5f,
-        -0.5f,
+        //y pos y tex coord
+         0.5f,  1.0f,
+        -0.5f,  0.0f,
     };
 
 
@@ -27,6 +27,7 @@ public class Game : GameWindow
 
     private Shader? shader;
 
+    private Texture? texture;
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
 
     protected override void OnLoad()
@@ -35,7 +36,6 @@ public class Game : GameWindow
 
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-
         vertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(vertexArrayObject);
         vertexBufferObject = GL.GenBuffer();
@@ -43,31 +43,38 @@ public class Game : GameWindow
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
         GL.EnableVertexAttribArray(0);
-        GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 1 * sizeof(float), 0);
+        GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+
+        GL.EnableVertexAttribArray(1);
+        GL.VertexAttribPointer(1, 1, VertexAttribPointerType.Float, false, 2 * sizeof(float), 1 * sizeof(float));
 
         shader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
-
         shader.Use();
+
+        texture = Texture.LoadFromFile("Textures/redbrick.png");
+        texture.Use(TextureUnit.Texture0);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
     {
         Debug.Assert(shader != null);
+        Debug.Assert(texture != null);
 
         base.OnRenderFrame(args);
 
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
+        texture.Use(TextureUnit.Texture0);
         shader.Use();
 
         for (int x = 0; x < Size.X; x++)
         {
-            var (color, lineHeight, cameraX) = Cast_Ray(x);
+            var (lineHeight, cameraX, wallX) = Cast_Ray(x);
             //draw the pixels of the stripe as a vertical line
 
-            GL.Uniform3(GL.GetUniformLocation(shader.Handle, "objectColor"), color);
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "height"), (float)lineHeight);
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "x"), (float)cameraX);
+            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "texX"), (float)wallX);
 
             GL.BindVertexArray(vertexArrayObject);
             GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
@@ -76,12 +83,12 @@ public class Game : GameWindow
         SwapBuffers();
     }
 
-    private (Vector3, double, double) Cast_Ray(int x)
+    private (double, double, double) Cast_Ray(int x)
     {
         Debug.Assert(shader != null);
 
         double cameraX = (x * 2.0 / Size.X) - 1.0; //x-coordinate in camera space
-                                                         //calculate ray position and direction
+                                                   //calculate ray position and direction
         double rayDirX = gameMap.player.DirX + gameMap.player.PlaneX * cameraX;
         double rayDirY = gameMap.player.DirY + gameMap.player.PlaneY * cameraX;
 
@@ -160,7 +167,20 @@ public class Game : GameWindow
         //give x and y sides different brightness
         if (side == 1) { color = color / 2; }
 
-        return (color, lineHeight, cameraX);
+        //texturing calculations
+        int texNum = gameMap.worldMap[mapX, mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+
+        //calculate value of wallX
+        double wallX; //where exactly the wall was hit
+        if (side == 0) wallX = gameMap.player.PosY + perpWallDist * rayDirY;
+        else wallX = gameMap.player.PosX + perpWallDist * rayDirX;
+        wallX -= Math.Floor(wallX);
+
+        //x coordinate on the texture
+        if (side == 0 && rayDirX > 0) wallX = 1 - wallX;
+        if (side == 1 && rayDirY < 0) wallX = 1 - wallX;
+
+        return (lineHeight, cameraX, wallX);
     }
 
     private Vector3 getColor(int mapX, int mapY)

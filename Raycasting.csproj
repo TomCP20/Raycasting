@@ -7,8 +7,12 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTK" Version="4.8.2" />
+    <PackageReference Include="StbImageSharp" Version="2.27.14" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders/**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Textures/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
