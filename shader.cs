@@ -97,7 +97,7 @@ public class Shader
         {
             // We can use `GL.GetShaderInfoLog(shader)` to get information about the error.
             var infoLog = GL.GetShaderInfoLog(shader);
-            throw new Exception($"Error occurred whilst compiling Shader({shader}).\n\n{infoLog}");
+            throw new ShaderCompileException($"Error occurred whilst compiling Shader({shader}).\n\n{infoLog}");
         }
     }
 
@@ -111,7 +111,7 @@ public class Shader
         if (code != (int)All.True)
         {
             // We can use `GL.GetProgramInfoLog(program)` to get information about the error.
-            throw new Exception($"Error occurred whilst linking Program({program})");
+            throw new ShaderLinkException($"Error occurred whilst linking Program({program})");
         }
     }
 
