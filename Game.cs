@@ -11,10 +11,13 @@ public class Game : GameWindow
 {
     private readonly GameMap gameMap = new GameMap();
 
-    readonly float[] vertices = {
-        0.0f, 0.5f, 0.0f,
-        0.0f, -0.5f, 0.0f
+    readonly float[] vertices = 
+    {
+        //y pos
+         0.5f,
+        -0.5f,
     };
+
 
     const int vertexCount = 2;
 
@@ -40,7 +43,7 @@ public class Game : GameWindow
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
         GL.EnableVertexAttribArray(0);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 1 * sizeof(float), 0);
 
         shader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
 
