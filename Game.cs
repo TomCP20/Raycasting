@@ -174,8 +174,7 @@ public class Game : GameWindow
         wallX -= Math.Floor(wallX);
 
         //x coordinate on the texture
-        if (side == 0 && rayDirX > 0) wallX = 1 - wallX;
-        if (side == 1 && rayDirY < 0) wallX = 1 - wallX;
+        if ((side == 0 && rayDirX > 0) ^ (side == 1 && rayDirY < 0)) wallX = 1 - wallX;
 
         return (lineHeight, cameraX, wallX, side, texNum);
     }
