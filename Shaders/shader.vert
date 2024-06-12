@@ -8,5 +8,5 @@ uniform float x;
 
 void main()
 {
-    gl_Position = vec4(x, vertexPos.y*height, vertexPos.z, 1.0);
+    gl_Position = vec4(x, vertexPos.y*height, 0.0, 1.0);
 }

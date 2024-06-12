@@ -16,6 +16,8 @@ public class Game : GameWindow
         0.0f, -0.5f, 0.0f
     };
 
+    const int vertexCount = 2;
+
     private int vertexBufferObject;
 
     private int vertexArrayObject;
@@ -65,7 +67,7 @@ public class Game : GameWindow
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "x"), (float)cameraX);
 
             GL.BindVertexArray(vertexArrayObject);
-            GL.DrawArrays(PrimitiveType.Lines, 0, vertices.Length);
+            GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
         }
 
         SwapBuffers();
