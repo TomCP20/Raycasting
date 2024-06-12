@@ -69,13 +69,15 @@ public class Game : GameWindow
 
         for (int x = 0; x < Size.X; x++)
         {
-            var (lineHeight, cameraX, wallX) = Cast_Ray(x);
-            //draw the pixels of the stripe as a vertical line
+            var (lineHeight, cameraX, wallX, brightness) = Cast_Ray(x);
 
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "height"), (float)lineHeight);
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "x"), (float)cameraX);
             GL.Uniform1(GL.GetUniformLocation(shader.Handle, "texX"), (float)wallX);
 
+            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "brightness"), (float)brightness);
+
+            //draw the pixels of the stripe as a vertical line
             GL.BindVertexArray(vertexArrayObject);
             GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
         }
@@ -83,7 +85,7 @@ public class Game : GameWindow
         SwapBuffers();
     }
 
-    private (double, double, double) Cast_Ray(int x)
+    private (double, double, double, double) Cast_Ray(int x)
     {
         Debug.Assert(shader != null);
 
@@ -161,11 +163,8 @@ public class Game : GameWindow
         //Calculate height of line to draw on screen
         double lineHeight = Size.Y / (perpWallDist * 250.0f);
 
-        //choose wall color
-        Vector3 color = getColor(mapX, mapY);
-
         //give x and y sides different brightness
-        if (side == 1) { color = color / 2; }
+        double brightness = (side == 1) ? 0.5: 1.0;
 
         //texturing calculations
         int texNum = gameMap.worldMap[mapX, mapY] - 1; //1 subtracted from it so that texture 0 can be used!
@@ -180,19 +179,7 @@ public class Game : GameWindow
         if (side == 0 && rayDirX > 0) wallX = 1 - wallX;
         if (side == 1 && rayDirY < 0) wallX = 1 - wallX;
 
-        return (lineHeight, cameraX, wallX);
-    }
-
-    private Vector3 getColor(int mapX, int mapY)
-    {
-        return gameMap.worldMap[mapX, mapY] switch
-        {
-            1 => new Vector3(1.0f, 0.0f, 0.0f),
-            2 => new Vector3(0.0f, 1.0f, 0.0f),
-            3 => new Vector3(0.0f, 0.0f, 1.0f),
-            4 => new Vector3(1.0f, 1.0f, 1.0f),
-            _ => new Vector3(1.0f, 1.0f, 0.0f),
-        };
+        return (lineHeight, cameraX, wallX, brightness);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
