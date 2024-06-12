@@ -156,11 +156,6 @@ public class Game : GameWindow
         {
             gameMap.SpinPlayer(rotSpeed);
         }
-
-        if (IsMouseButtonReleased(MouseButton.Left))
-        {
-            Console.WriteLine(MouseState.Position);
-        }
     }
 
 
