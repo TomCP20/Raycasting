@@ -103,9 +103,7 @@ public class Game : GameWindow
         {
             //jump to next map square, either in x-direction, or in y-direction
             ray.step();
-
         }
-
 
         //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
         double perpWallDist = ray.getPerpWallDist();
