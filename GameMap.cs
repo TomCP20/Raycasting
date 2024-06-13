@@ -1,3 +1,5 @@
+using OpenTK.Mathematics;
+
 namespace Raycasting;
 public class GameMap
 {
@@ -36,18 +38,27 @@ public class GameMap
     {
         //both camera direction and camera plane must be rotated
         Player newplayer = player;
-        newplayer.dirX = player.dirX * Math.Cos(rotSpeed) - player.dirY * Math.Sin(rotSpeed);
-        newplayer.dirY = player.dirX * Math.Sin(rotSpeed) + player.dirY * Math.Cos(rotSpeed);
-        newplayer.planeX = player.planeX * Math.Cos(rotSpeed) - player.planeY * Math.Sin(rotSpeed);
-        newplayer.planeY = player.planeX * Math.Sin(rotSpeed) + player.planeY * Math.Cos(rotSpeed);
+        Vector2d newDir = player.pos;
+        Vector2d newPlane = player.plane;
+        
+        newDir.X = (float)((player.dir.X * Math.Cos(rotSpeed)) - (player.dir.Y * Math.Sin(rotSpeed)));
+        newDir.Y = (float)((player.dir.X * Math.Sin(rotSpeed)) + (player.dir.Y * Math.Cos(rotSpeed)));
+        newPlane.X = (float)((player.plane.X * Math.Cos(rotSpeed)) - (player.plane.Y * Math.Sin(rotSpeed)));
+        newPlane.Y = (float)((player.plane.X * Math.Sin(rotSpeed)) + (player.plane.Y * Math.Cos(rotSpeed)));
+        
+        newplayer.dir = newDir;
+        newplayer.plane = newPlane;     
         player = newplayer;
     }
 
     public void MovePlayer(double moveSpeed)
     {
         Player newplayer = player;
-        if (worldMap[(int)(player.posX + player.dirX * moveSpeed), (int)player.posY] == 0) newplayer.posX += player.dirX * moveSpeed;
-        if (worldMap[(int)player.posX, (int)(player.posY + player.dirY * moveSpeed)] == 0) newplayer.posY += player.dirY * moveSpeed;
+        Vector2d newPos = player.pos;
+        if (worldMap[(int)(player.pos.X + (player.dir.X * moveSpeed)), (int)player.pos.Y] == 0) newPos.X += (float)(player.dir.X * moveSpeed);
+        if (worldMap[(int)player.pos.X, (int)(player.pos.Y + (player.dir.Y * moveSpeed))] == 0) newPos.Y += (float)(player.dir.Y * moveSpeed);
+        
+        newplayer.pos = newPos;
         player = newplayer;
     }
 

@@ -112,16 +112,15 @@ public class Game : GameWindow
         double cameraX = (x * 2.0 / Size.X) - 1.0; //x-coordinate in camera space
 
         //calculate ray position and direction
-        double rayDirX = gameMap.player.dirX + gameMap.player.planeX * cameraX;
-        double rayDirY = gameMap.player.dirY + gameMap.player.planeY * cameraX;
+        Vector2d rayDir = gameMap.player.dir + (gameMap.player.plane * cameraX);
 
-        Ray ray = new Ray(gameMap.player.posX, gameMap.player.posY, rayDirX, rayDirY);
+        Ray ray = new Ray(gameMap.player.pos, rayDir);
 
         //perform DDA
-        while (gameMap.worldMap[ray.mapX, ray.mapY] == 0) //Check if ray has hit a wall
+        while (gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] == 0) //Check if ray has hit a wall
         {
             //jump to next map square, either in x-direction, or in y-direction
-            ray.step();
+            ray.stepRay();
         }
 
         //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
@@ -131,7 +130,7 @@ public class Game : GameWindow
         double lineHeight = Size.Y / (perpWallDist * 500.0f);
 
         //texturing calculations
-        int texNum = gameMap.worldMap[ray.mapX, ray.mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+        int texNum = gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] - 1; //1 subtracted from it so that texture 0 can be used!
 
         //calculate value of wallX
         double wallX = ray.getWallX(perpWallDist);
