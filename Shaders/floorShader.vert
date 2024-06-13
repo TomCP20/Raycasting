@@ -6,5 +6,5 @@ uniform float y;
 
 void main()
 {
-    gl_Position = vec4(vertexX * 2, y, 0.0, 1.0);
+    gl_Position = vec4(vertexX, y, 0.0, 1.0);
 }

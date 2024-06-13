@@ -13,9 +13,9 @@ public class Game : GameWindow
 
     readonly float[] vertices =
     {
-        //y pos y tex coord
-         0.5f,  1.0f,
-        -0.5f,  0.0f,
+        //pos y tex coord
+         1f,  1.0f,
+        -1f,  0.0f,
     };
 
 
@@ -128,7 +128,7 @@ public class Game : GameWindow
         double perpWallDist = ray.getPerpWallDist();
 
         //Calculate height of line to draw on screen
-        double lineHeight = Size.Y / (perpWallDist * 250.0f);
+        double lineHeight = Size.Y / (perpWallDist * 500.0f);
 
         //texturing calculations
         int texNum = gameMap.worldMap[ray.mapX, ray.mapY] - 1; //1 subtracted from it so that texture 0 can be used!
