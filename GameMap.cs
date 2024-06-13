@@ -36,18 +36,18 @@ public class GameMap
     {
         //both camera direction and camera plane must be rotated
         Player newplayer = player;
-        newplayer.DirX = player.DirX * Math.Cos(rotSpeed) - player.DirY * Math.Sin(rotSpeed);
-        newplayer.DirY = player.DirX * Math.Sin(rotSpeed) + player.DirY * Math.Cos(rotSpeed);
-        newplayer.PlaneX = player.PlaneX * Math.Cos(rotSpeed) - player.PlaneY * Math.Sin(rotSpeed);
-        newplayer.PlaneY = player.PlaneX * Math.Sin(rotSpeed) + player.PlaneY * Math.Cos(rotSpeed);
+        newplayer.dirX = player.dirX * Math.Cos(rotSpeed) - player.dirY * Math.Sin(rotSpeed);
+        newplayer.dirY = player.dirX * Math.Sin(rotSpeed) + player.dirY * Math.Cos(rotSpeed);
+        newplayer.planeX = player.planeX * Math.Cos(rotSpeed) - player.planeY * Math.Sin(rotSpeed);
+        newplayer.planeY = player.planeX * Math.Sin(rotSpeed) + player.planeY * Math.Cos(rotSpeed);
         player = newplayer;
     }
 
     public void MovePlayer(double moveSpeed)
     {
         Player newplayer = player;
-        if (worldMap[(int)(player.PosX + player.DirX * moveSpeed), (int)player.PosY] == 0) newplayer.PosX += player.DirX * moveSpeed;
-        if (worldMap[(int)player.PosX, (int)(player.PosY + player.DirY * moveSpeed)] == 0) newplayer.PosY += player.DirY * moveSpeed;
+        if (worldMap[(int)(player.posX + player.dirX * moveSpeed), (int)player.posY] == 0) newplayer.posX += player.dirX * moveSpeed;
+        if (worldMap[(int)player.posX, (int)(player.posY + player.dirY * moveSpeed)] == 0) newplayer.posY += player.dirY * moveSpeed;
         player = newplayer;
     }
 

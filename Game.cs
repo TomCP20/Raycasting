@@ -25,7 +25,8 @@ public class Game : GameWindow
 
     private int vertexArrayObject;
 
-    private Shader? shader;
+    private Shader? wallShader;
+    private Shader? floorShader;
 
     private Texture? texture;
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
@@ -48,8 +49,8 @@ public class Game : GameWindow
         GL.EnableVertexAttribArray(1);
         GL.VertexAttribPointer(1, 1, VertexAttribPointerType.Float, false, 2 * sizeof(float), 1 * sizeof(float));
 
-        shader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
-        shader.Use();
+        wallShader = new Shader("Shaders/wallShader.vert", "Shaders/wallShader.frag");
+        floorShader = new Shader("Shaders/floorShader.vert", "Shaders/floorShader.frag");
 
         texture = Texture.LoadFromFile("Textures/atlas.gif");
         texture.Use(TextureUnit.Texture0);
@@ -57,46 +58,64 @@ public class Game : GameWindow
 
     protected override void OnRenderFrame(FrameEventArgs args)
     {
-        Debug.Assert(shader != null);
         Debug.Assert(texture != null);
 
         base.OnRenderFrame(args);
-
         GL.Clear(ClearBufferMask.ColorBufferBit);
-
         texture.Use(TextureUnit.Texture0);
-        shader.Use();
+
+        drawFloor();
+        drawWalls();
+
+        SwapBuffers();
+    }
+
+    private void drawFloor()
+    {
+        Debug.Assert(floorShader != null);
+        floorShader.Use();
+        for (int y = 0; y < Size.Y/2; y++)
+        {
+            GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "y"), (float)((y * 2.0 / Size.Y) - 1.0));
+            GL.BindVertexArray(vertexArrayObject);
+            GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
+        }
+
+    }
+
+    private void drawWalls()
+    {
+        Debug.Assert(wallShader != null);
+        wallShader.Use();
 
         for (int x = 0; x < Size.X; x++)
         {
-            var (lineHeight, cameraX, wallX, isDark, texNum) = Cast_Ray(x);
+            (double lineHeight, double cameraX, double wallX, int isDark, int texNum) = Cast_Ray(x);
 
-            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "height"), (float)lineHeight);
-            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "x"), (float)cameraX);
-            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "texX"), (float)wallX);
-            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "texNum"), texNum);
+            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "height"), (float)lineHeight);
+            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "x"), (float)cameraX);
+            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "texX"), (float)wallX);
+            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "texNum"), texNum);
 
-            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "isDark"), isDark);
+            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "isDark"), isDark);
 
             //draw the pixels of the stripe as a vertical line
             GL.BindVertexArray(vertexArrayObject);
             GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
         }
-
-        SwapBuffers();
     }
 
     private (double, double, double, int, int) Cast_Ray(int x)
     {
-        Debug.Assert(shader != null);
+        Debug.Assert(wallShader != null);
 
         double cameraX = (x * 2.0 / Size.X) - 1.0; //x-coordinate in camera space
 
         //calculate ray position and direction
-        double rayDirX = gameMap.player.DirX + gameMap.player.PlaneX * cameraX;
-        double rayDirY = gameMap.player.DirY + gameMap.player.PlaneY * cameraX;
+        double rayDirX = gameMap.player.dirX + gameMap.player.planeX * cameraX;
+        double rayDirY = gameMap.player.dirY + gameMap.player.planeY * cameraX;
 
-        Ray ray = new Ray(gameMap.player.PosX, gameMap.player.PosY, rayDirX, rayDirY);
+        Ray ray = new Ray(gameMap.player.posX, gameMap.player.posY, rayDirX, rayDirY);
 
         //perform DDA
         while (gameMap.worldMap[ray.mapX, ray.mapY] == 0) //Check if ray has hit a wall
@@ -166,7 +185,7 @@ public class Game : GameWindow
 
     protected override void OnUnload()
     {
-        Debug.Assert(shader != null);
+        Debug.Assert(wallShader != null);
 
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
@@ -175,7 +194,7 @@ public class Game : GameWindow
         GL.DeleteBuffer(vertexBufferObject);
         GL.DeleteVertexArray(vertexArrayObject);
 
-        GL.DeleteProgram(shader.Handle);
+        GL.DeleteProgram(wallShader.Handle);
 
         base.OnUnload();
     }
