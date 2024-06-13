@@ -91,7 +91,7 @@ public class Game : GameWindow
         Debug.Assert(shader != null);
 
         double cameraX = (x * 2.0 / Size.X) - 1.0; //x-coordinate in camera space
-        
+
         //calculate ray position and direction
         double rayDirX = gameMap.player.DirX + gameMap.player.PlaneX * cameraX;
         double rayDirY = gameMap.player.DirY + gameMap.player.PlaneY * cameraX;
@@ -99,13 +99,13 @@ public class Game : GameWindow
         Ray ray = new Ray(gameMap.player.PosX, gameMap.player.PosY, rayDirX, rayDirY);
 
         //perform DDA
-        while (true)
+        while (gameMap.worldMap[ray.mapX, ray.mapY] == 0) //Check if ray has hit a wall
         {
             //jump to next map square, either in x-direction, or in y-direction
             ray.step();
-            //Check if ray has hit a wall
-            if (gameMap.worldMap[ray.mapX, ray.mapY] > 0) break;
+
         }
+
 
         //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
         double perpWallDist = ray.getPerpWallDist();
