@@ -14,9 +14,9 @@ public class Game : GameWindow
 
     readonly float[] vertices =
     {
-        //pos y tex coord
-         1f,  1.0f,
-        -1f,  0.0f,
+        //pos
+         1f,
+        -1f,
     };
 
 
@@ -45,10 +45,7 @@ public class Game : GameWindow
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
         GL.EnableVertexAttribArray(0);
-        GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
-
-        GL.EnableVertexAttribArray(1);
-        GL.VertexAttribPointer(1, 1, VertexAttribPointerType.Float, false, 2 * sizeof(float), 1 * sizeof(float));
+        GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, sizeof(float), 0);
 
         wallShader = new Shader("Shaders/wallShader.vert", "Shaders/wallShader.frag");
         floorCeilShader = new Shader("Shaders/floorCeilShader.vert", "Shaders/floorCeilShader.frag");
@@ -166,11 +163,11 @@ public class Game : GameWindow
             isDarks[x] = ray.side;
         }
 
-        bufferInstanceData(heights, 2);
-        bufferInstanceData(cameraXs, 3);
-        bufferInstanceData(isDarks, 4);
-        bufferInstanceData(texXs, 5);
-        bufferInstanceData(texNums, 6);
+        bufferInstanceData(heights, 1);
+        bufferInstanceData(cameraXs, 2);
+        bufferInstanceData(isDarks, 3);
+        bufferInstanceData(texXs, 4);
+        bufferInstanceData(texNums, 5);
 
         //draw the pixels of the stripe as a vertical line
         GL.BindVertexArray(vertexArrayObject);

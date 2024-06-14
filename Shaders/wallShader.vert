@@ -1,12 +1,11 @@
 #version 330 core
 
 layout (location = 0) in float vertexY;
-layout (location = 1) in float aTexY;
-layout (location = 2) in float height;
-layout (location = 3) in float x;
-layout (location = 4) in float aIsDark;
-layout (location = 5) in float aTexX;
-layout (location = 6) in float aTexNum;
+layout (location = 1) in float height;
+layout (location = 2) in float x;
+layout (location = 3) in float aIsDark;
+layout (location = 4) in float aTexX;
+layout (location = 5) in float aTexNum;
 
 out float texY;
 out float isDark;
@@ -15,7 +14,7 @@ out float texNum;
 
 void main()
 {
-    texY = aTexY;
+    texY = (vertexY + 1.0f)/2.0f;
     isDark = aIsDark;
     texX = aTexX;
     texNum = aTexNum;
