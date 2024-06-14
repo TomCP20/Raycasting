@@ -74,15 +74,19 @@ public class Game : GameWindow
         floorCeilShader.Use();
         GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "width"), Size.X);
 
+
+        float[] ys = new float[Size.Y];
+        Vector2[] floor0s = new Vector2[Size.Y];
+        Vector2[] floorSteps = new Vector2[Size.Y];
+        float[] texNums = new float[Size.Y];
+
         // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
         Vector2 rayDir0 = (Vector2)(gameMap.player.dir - gameMap.player.plane);
         Vector2 rayDir1 = (Vector2)(gameMap.player.dir + gameMap.player.plane);
 
         //Size.Y / 2
-        for (int y = 0; y < Size.Y / 2; y++)
+        for (int y = 0; y < Math.Floor(Size.Y / 2.0f); y++)
         {
-
-
             // Current y position compared to the center of the screen (the horizon)
             int p = -(y - Size.Y / 2);
 
@@ -96,27 +100,32 @@ public class Game : GameWindow
             // calculate the real world step vector we have to add for each x (parallel to camera plane)
             // adding step by step avoids multiplications with a weight in the inner loop
 
-            Vector2 floorStep = rowDistance * (rayDir1 - rayDir0) / Size.X;
+            floorSteps[y] = rowDistance * (rayDir1 - rayDir0) / Size.X;
+            floorSteps[Size.Y - y - 1] = rowDistance * (rayDir1 - rayDir0) / Size.X;
 
             // real world coordinates of the leftmost column. This will be updated as we step to the right.
-            Vector2 floor0 = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
+            floor0s[y] = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
+            floor0s[Size.Y - y - 1] = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
 
-            GL.Uniform2(GL.GetUniformLocation(floorCeilShader.Handle, "floor0"), floor0);
-            GL.Uniform2(GL.GetUniformLocation(floorCeilShader.Handle, "floorStep"), floorStep);
+            texNums[y] = 3;
+            texNums[Size.Y - y - 1] = 6;
 
-            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "y"), (float)((y * 2.0 / Size.Y) - 1.0));
-            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "texNum"), 3);
+            ys[y] = (float)((y * 2.0 / Size.Y) - 1.0);
+            ys[Size.Y - y - 1] = (float)(((Size.Y - y - 1) * 2.0 / Size.Y) - 1.0);
 
-            GL.BindVertexArray(vertexArrayObject);
-            GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
+        }
 
-            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "y"), (float)(((Size.Y - y - 1) * 2.0 / Size.Y) - 1.0));
-            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "texNum"), 6);
+        for (int y = 0; y < Size.Y; y++)
+        {
+            GL.Uniform2(GL.GetUniformLocation(floorCeilShader.Handle, "floor0"), floor0s[y]);
+            GL.Uniform2(GL.GetUniformLocation(floorCeilShader.Handle, "floorStep"), floorSteps[y]);
+
+            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "y"), ys[y]);
+            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "texNum"), (int)texNums[y]);
 
             GL.BindVertexArray(vertexArrayObject);
             GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
         }
-
         
 
     }
