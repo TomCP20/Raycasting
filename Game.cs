@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.VisualBasic;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -119,6 +120,8 @@ public class Game : GameWindow
             GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
         }
 
+        
+
     }
 
     private void drawWalls()
@@ -126,12 +129,18 @@ public class Game : GameWindow
         Debug.Assert(wallShader != null);
         wallShader.Use();
 
+        float[] heights = new float[Size.X];
+        float[] cameraXs = new float[Size.X];
+        float[] isDarks = new float[Size.X];
+        float[] texXs = new float[Size.X];
+        float[] texNums = new float[Size.X];
+
         for (int x = 0; x < Size.X; x++)
         {
-            double cameraX = (x * 2.0 / Size.X) - 1.0; //x-coordinate in camera space
+            cameraXs[x] = (float)((x * 2.0 / Size.X) - 1.0); //x-coordinate in camera space
 
             //calculate ray position and direction
-            Vector2d rayDir = gameMap.player.dir + (gameMap.player.plane * cameraX);
+            Vector2d rayDir = gameMap.player.dir + (gameMap.player.plane * cameraXs[x]);
 
             Ray ray = new Ray(gameMap.player.pos, rayDir);
 
@@ -146,24 +155,40 @@ public class Game : GameWindow
             double perpWallDist = ray.getPerpWallDist();
 
             //Calculate height of line to draw on screen
-            double lineHeight = Size.Y / (perpWallDist * 500.0f);
+            heights[x] = (float)(Size.Y / (perpWallDist * 500.0f));
 
             //texturing calculations
-            int texNum = gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] - 1; //1 subtracted from it so that texture 0 can be used!
+            texNums[x] = gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] - 1; //1 subtracted from it so that texture 0 can be used!
 
             //calculate value of wallX
-            double wallX = ray.getWallX(perpWallDist);
+            texXs[x] = (float)ray.getWallX(perpWallDist);
 
-            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "height"), (float)lineHeight);
-            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "x"), (float)cameraX);
-            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "texX"), (float)wallX);
-            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "texNum"), texNum);
-            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "isDark"), ray.side);
-
-            //draw the pixels of the stripe as a vertical line
-            GL.BindVertexArray(vertexArrayObject);
-            GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
+            isDarks[x] = ray.side;
         }
+
+        bufferInstanceData(heights, 2);
+        bufferInstanceData(cameraXs, 3);
+        bufferInstanceData(isDarks, 4);
+        bufferInstanceData(texXs, 5);
+        bufferInstanceData(texNums, 6);
+
+        //draw the pixels of the stripe as a vertical line
+        GL.BindVertexArray(vertexArrayObject);
+        GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.X);
+    }
+
+    private void bufferInstanceData(float[] data, int attributeIndex)
+    {
+        int instanceVBO = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO);
+        GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * data.Length, data, BufferUsageHint.StaticDraw);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+        GL.EnableVertexAttribArray(attributeIndex);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO); // this attribute comes from a different vertex buffer
+        GL.VertexAttribPointer(attributeIndex, 1, VertexAttribPointerType.Float, false, sizeof(float), IntPtr.Zero);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        GL.VertexAttribDivisor(attributeIndex, 1); // tell OpenGL this is an instanced vertex attribute.
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)

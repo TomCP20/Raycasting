@@ -3,18 +3,18 @@
 out vec4 finalColor;
 
 in float texY;
+in float isDark;
+in float texX;
+in float texNum;
 
 uniform sampler2D texture0;
-uniform bool isDark;
-uniform float texX;
-uniform int texNum;
 
 void main()
 {
     vec2 texCoord = vec2(((texX*63+0.5)/64 + texNum)/11, texY);
 
     finalColor = texture(texture0, texCoord);
-    if (isDark)
+    if (isDark != 0)
     {
         finalColor /= 2;
     }
