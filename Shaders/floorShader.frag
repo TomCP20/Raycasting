@@ -1,8 +1,24 @@
 #version 330 core
 
+in float x;
+
+uniform sampler2D texture0;
+uniform vec2 floor0;
+uniform vec2 floorStep;
+
 out vec4 finalColor;
 
 void main()
 {
-    finalColor = vec4(0, 1, 0, 1);
+    vec2 floor = floor0 + x * floorStep;
+
+    // the cell coord is simply got from the integer parts of floorX and floorY
+    ivec2 cell = ivec2(floor);
+
+    // get the texture coordinate from the fractional part
+    vec2 t = floor - cell;
+
+    int floorTexture = 3;
+
+    finalColor = texture(texture0, vec2(((t.x*63+0.5)/64 + floorTexture)/11, t.y))/2;
 }

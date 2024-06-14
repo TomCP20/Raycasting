@@ -74,8 +74,38 @@ public class Game : GameWindow
     {
         Debug.Assert(floorShader != null);
         floorShader.Use();
-        for (int y = 0; y < Size.Y/2; y++)
+        GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "width"), Size.X);
+
+        // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
+        Vector2 rayDir0 = (Vector2)(gameMap.player.dir - gameMap.player.plane);
+        Vector2 rayDir1 = (Vector2)(gameMap.player.dir + gameMap.player.plane);
+
+        //Size.Y / 2
+        for (int y = 0; y < Size.Y / 2; y++)
         {
+
+
+            // Current y position compared to the center of the screen (the horizon)
+            int p = -(y - Size.Y / 2);
+
+            // Vertical position of the camera.
+            float posZ = (float)(0.5 * Size.Y);
+
+            // Horizontal distance from the camera to the floor for the current row.
+            // 0.5 is the z position exactly in the middle between floor and ceiling.
+            float rowDistance = posZ / p;
+
+            // calculate the real world step vector we have to add for each x (parallel to camera plane)
+            // adding step by step avoids multiplications with a weight in the inner loop
+
+            Vector2 floorStep = rowDistance * (rayDir1 - rayDir0) / Size.X;
+
+            // real world coordinates of the leftmost column. This will be updated as we step to the right.
+            Vector2 floor0 = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
+            
+            GL.Uniform2(GL.GetUniformLocation(floorShader.Handle, "floor0"), floor0);
+            GL.Uniform2(GL.GetUniformLocation(floorShader.Handle, "floorStep"), floorStep);
+
             GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "y"), (float)((y * 2.0 / Size.Y) - 1.0));
             GL.BindVertexArray(vertexArrayObject);
             GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
