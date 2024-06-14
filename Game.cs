@@ -26,7 +26,7 @@ public class Game : GameWindow
     private int vertexArrayObject;
 
     private Shader? wallShader;
-    private Shader? floorShader;
+    private Shader? floorCeilShader;
 
     private Texture? texture;
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
@@ -50,7 +50,7 @@ public class Game : GameWindow
         GL.VertexAttribPointer(1, 1, VertexAttribPointerType.Float, false, 2 * sizeof(float), 1 * sizeof(float));
 
         wallShader = new Shader("Shaders/wallShader.vert", "Shaders/wallShader.frag");
-        floorShader = new Shader("Shaders/floorShader.vert", "Shaders/floorShader.frag");
+        floorCeilShader = new Shader("Shaders/floorCeilShader.vert", "Shaders/floorCeilShader.frag");
 
         texture = Texture.LoadFromFile("Textures/atlas.gif");
         texture.Use(TextureUnit.Texture0);
@@ -64,17 +64,17 @@ public class Game : GameWindow
         GL.Clear(ClearBufferMask.ColorBufferBit);
         texture.Use(TextureUnit.Texture0);
 
-        drawFloor();
+        drawFloorCeil();
         drawWalls();
 
         SwapBuffers();
     }
 
-    private void drawFloor()
+    private void drawFloorCeil()
     {
-        Debug.Assert(floorShader != null);
-        floorShader.Use();
-        GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "width"), Size.X);
+        Debug.Assert(floorCeilShader != null);
+        floorCeilShader.Use();
+        GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "width"), Size.X);
 
         // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
         Vector2 rayDir0 = (Vector2)(gameMap.player.dir - gameMap.player.plane);
@@ -103,17 +103,17 @@ public class Game : GameWindow
             // real world coordinates of the leftmost column. This will be updated as we step to the right.
             Vector2 floor0 = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
             
-            GL.Uniform2(GL.GetUniformLocation(floorShader.Handle, "floor0"), floor0);
-            GL.Uniform2(GL.GetUniformLocation(floorShader.Handle, "floorStep"), floorStep);
+            GL.Uniform2(GL.GetUniformLocation(floorCeilShader.Handle, "floor0"), floor0);
+            GL.Uniform2(GL.GetUniformLocation(floorCeilShader.Handle, "floorStep"), floorStep);
 
-            GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "y"), (float)((y * 2.0 / Size.Y) - 1.0));
-            GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "texNum"), 3);
+            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "y"), (float)((y * 2.0 / Size.Y) - 1.0));
+            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "texNum"), 3);
 
             GL.BindVertexArray(vertexArrayObject);
             GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
 
-            GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "y"), (float)(((Size.Y - y - 1) * 2.0 / Size.Y) - 1.0));
-            GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "texNum"), 6);
+            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "y"), (float)(((Size.Y - y - 1) * 2.0 / Size.Y) - 1.0));
+            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "texNum"), 6);
 
             GL.BindVertexArray(vertexArrayObject);
             GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
