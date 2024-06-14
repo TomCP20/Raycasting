@@ -26,8 +26,8 @@ public class Ray
         mapPos = new((int)Math.Floor(pos.X), (int)Math.Floor(pos.Y));
 
         //length of ray from one x or y-side to next x or y-side
-        deltaDist.X = (float)((Math.Abs(dir.X) < 1e-8) ? 1e8 : Math.Abs(1 / dir.X));
-        deltaDist.Y = (float)((Math.Abs(dir.Y) < 1e-8) ? 1e8 : Math.Abs(1 / dir.Y));
+        deltaDist.X = Math.Abs(1 / dir.X);
+        deltaDist.Y = Math.Abs(1 / dir.Y);
 
         //calculate step and initial sideDist
         if (dir.X < 0)
@@ -38,7 +38,7 @@ public class Ray
         else
         {
             step.X = 1;
-            sideDist.X = (float)((mapPos.X + 1.0 - pos.X) * deltaDist.X);
+            sideDist.X = (mapPos.X + 1.0 - pos.X) * deltaDist.X;
         }
         if (dir.Y < 0)
         {
@@ -48,7 +48,7 @@ public class Ray
         else
         {
             step.Y = 1;
-            sideDist.Y = (float)((mapPos.Y + 1.0 - pos.Y) * deltaDist.Y);
+            sideDist.Y = (mapPos.Y + 1.0 - pos.Y) * deltaDist.Y;
         }
     }
 
