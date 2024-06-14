@@ -40,6 +40,7 @@ public class Game : GameWindow
 
         vertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(vertexArrayObject);
+        
         vertexBufferObject = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
@@ -114,19 +115,12 @@ public class Game : GameWindow
 
         }
 
-        for (int y = 0; y < Size.Y; y++)
-        {
-            GL.Uniform2(GL.GetUniformLocation(floorCeilShader.Handle, "floor0"), floor0s[y]);
-            GL.Uniform2(GL.GetUniformLocation(floorCeilShader.Handle, "floorStep"), floorSteps[y]);
+        bufferInstanceDataVector2(floor0s, 1);
+        bufferInstanceDataVector2(floorSteps, 2);
+        bufferInstanceDataFloat(ys, 3);
+        bufferInstanceDataFloat(texNums, 4);
 
-            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "y"), ys[y]);
-            GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "texNum"), (int)texNums[y]);
-
-            GL.BindVertexArray(vertexArrayObject);
-            GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
-        }
-        
-
+        GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.Y);
     }
 
     private void drawWalls()
@@ -171,18 +165,17 @@ public class Game : GameWindow
             isDarks[x] = ray.side;
         }
 
-        bufferInstanceData(heights, 1);
-        bufferInstanceData(cameraXs, 2);
-        bufferInstanceData(isDarks, 3);
-        bufferInstanceData(texXs, 4);
-        bufferInstanceData(texNums, 5);
+        bufferInstanceDataFloat(heights, 1);
+        bufferInstanceDataFloat(cameraXs, 2);
+        bufferInstanceDataFloat(isDarks, 3);
+        bufferInstanceDataFloat(texXs, 4);
+        bufferInstanceDataFloat(texNums, 5);
 
         //draw the pixels of the stripe as a vertical line
-        GL.BindVertexArray(vertexArrayObject);
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.X);
     }
 
-    private void bufferInstanceData(float[] data, int attributeIndex)
+    private void bufferInstanceDataFloat(float[] data, int attributeIndex)
     {
         int instanceVBO = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO);
@@ -192,6 +185,20 @@ public class Game : GameWindow
         GL.EnableVertexAttribArray(attributeIndex);
         GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO); // this attribute comes from a different vertex buffer
         GL.VertexAttribPointer(attributeIndex, 1, VertexAttribPointerType.Float, false, sizeof(float), IntPtr.Zero);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        GL.VertexAttribDivisor(attributeIndex, 1); // tell OpenGL this is an instanced vertex attribute.
+    }
+
+    private void bufferInstanceDataVector2(Vector2[] data, int attributeIndex)
+    {
+        int instanceVBO = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO);
+        GL.BufferData(BufferTarget.ArrayBuffer, Vector2.SizeInBytes * data.Length, data, BufferUsageHint.StaticDraw);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+        GL.EnableVertexAttribArray(attributeIndex);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO); // this attribute comes from a different vertex buffer
+        GL.VertexAttribPointer(attributeIndex, 2, VertexAttribPointerType.Float, false, Vector2.SizeInBytes, IntPtr.Zero);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.VertexAttribDivisor(attributeIndex, 1); // tell OpenGL this is an instanced vertex attribute.
     }

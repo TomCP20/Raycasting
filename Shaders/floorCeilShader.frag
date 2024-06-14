@@ -1,11 +1,11 @@
 #version 330 core
 
 in float x;
+in vec2 floor0;
+in vec2 floorStep;
+in float texNum;
 
 uniform sampler2D texture0;
-uniform vec2 floor0;
-uniform vec2 floorStep;
-uniform int texNum;
 
 out vec4 finalColor;
 
