@@ -107,6 +107,14 @@ public class Game : GameWindow
             GL.Uniform2(GL.GetUniformLocation(floorShader.Handle, "floorStep"), floorStep);
 
             GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "y"), (float)((y * 2.0 / Size.Y) - 1.0));
+            GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "texNum"), 3);
+
+            GL.BindVertexArray(vertexArrayObject);
+            GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
+
+            GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "y"), (float)(((Size.Y - y - 1) * 2.0 / Size.Y) - 1.0));
+            GL.Uniform1(GL.GetUniformLocation(floorShader.Handle, "texNum"), 6);
+
             GL.BindVertexArray(vertexArrayObject);
             GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
         }
