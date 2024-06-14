@@ -74,10 +74,9 @@ public class Game : GameWindow
         floorCeilShader.Use();
         GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "width"), Size.X);
 
-
-        float[] ys = new float[Size.Y];
         Vector2[] floor0s = new Vector2[Size.Y];
         Vector2[] floorSteps = new Vector2[Size.Y];
+        float[] ys = new float[Size.Y];
         float[] texNums = new float[Size.Y];
 
         // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
