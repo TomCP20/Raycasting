@@ -102,7 +102,7 @@ public class Game : GameWindow
 
             // real world coordinates of the leftmost column. This will be updated as we step to the right.
             Vector2 floor0 = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
-            
+
             GL.Uniform2(GL.GetUniformLocation(floorCeilShader.Handle, "floor0"), floor0);
             GL.Uniform2(GL.GetUniformLocation(floorCeilShader.Handle, "floorStep"), floorStep);
 
@@ -128,52 +128,42 @@ public class Game : GameWindow
 
         for (int x = 0; x < Size.X; x++)
         {
-            (double lineHeight, double cameraX, double wallX, int isDark, int texNum) = Cast_Ray(x);
+            double cameraX = (x * 2.0 / Size.X) - 1.0; //x-coordinate in camera space
+
+            //calculate ray position and direction
+            Vector2d rayDir = gameMap.player.dir + (gameMap.player.plane * cameraX);
+
+            Ray ray = new Ray(gameMap.player.pos, rayDir);
+
+            //perform DDA
+            while (gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] == 0) //Check if ray has hit a wall
+            {
+                //jump to next map square, either in x-direction, or in y-direction
+                ray.stepRay();
+            }
+
+            //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
+            double perpWallDist = ray.getPerpWallDist();
+
+            //Calculate height of line to draw on screen
+            double lineHeight = Size.Y / (perpWallDist * 500.0f);
+
+            //texturing calculations
+            int texNum = gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] - 1; //1 subtracted from it so that texture 0 can be used!
+
+            //calculate value of wallX
+            double wallX = ray.getWallX(perpWallDist);
 
             GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "height"), (float)lineHeight);
             GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "x"), (float)cameraX);
             GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "texX"), (float)wallX);
             GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "texNum"), texNum);
-
-            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "isDark"), isDark);
+            GL.Uniform1(GL.GetUniformLocation(wallShader.Handle, "isDark"), ray.side);
 
             //draw the pixels of the stripe as a vertical line
             GL.BindVertexArray(vertexArrayObject);
             GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
         }
-    }
-
-    private (double, double, double, int, int) Cast_Ray(int x)
-    {
-        Debug.Assert(wallShader != null);
-
-        double cameraX = (x * 2.0 / Size.X) - 1.0; //x-coordinate in camera space
-
-        //calculate ray position and direction
-        Vector2d rayDir = gameMap.player.dir + (gameMap.player.plane * cameraX);
-
-        Ray ray = new Ray(gameMap.player.pos, rayDir);
-
-        //perform DDA
-        while (gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] == 0) //Check if ray has hit a wall
-        {
-            //jump to next map square, either in x-direction, or in y-direction
-            ray.stepRay();
-        }
-
-        //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
-        double perpWallDist = ray.getPerpWallDist();
-
-        //Calculate height of line to draw on screen
-        double lineHeight = Size.Y / (perpWallDist * 500.0f);
-
-        //texturing calculations
-        int texNum = gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] - 1; //1 subtracted from it so that texture 0 can be used!
-
-        //calculate value of wallX
-        double wallX = ray.getWallX(perpWallDist);
-
-        return (lineHeight, cameraX, wallX, ray.side, texNum);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
