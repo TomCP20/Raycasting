@@ -36,18 +36,11 @@ public class GameMap
 
     public void SpinPlayer(double rotSpeed)
     {
+        Matrix2d rotMatrix = Matrix2d.CreateRotation((float)rotSpeed);
         //both camera direction and camera plane must be rotated
         Player newplayer = player;
-        Vector2d newDir = player.pos;
-        Vector2d newPlane = player.plane;
-        
-        newDir.X = (float)((player.dir.X * Math.Cos(rotSpeed)) - (player.dir.Y * Math.Sin(rotSpeed)));
-        newDir.Y = (float)((player.dir.X * Math.Sin(rotSpeed)) + (player.dir.Y * Math.Cos(rotSpeed)));
-        newPlane.X = (float)((player.plane.X * Math.Cos(rotSpeed)) - (player.plane.Y * Math.Sin(rotSpeed)));
-        newPlane.Y = (float)((player.plane.X * Math.Sin(rotSpeed)) + (player.plane.Y * Math.Cos(rotSpeed)));
-        
-        newplayer.dir = newDir;
-        newplayer.plane = newPlane;     
+        newplayer.dir = player.dir * rotMatrix;
+        newplayer.plane = player.plane * rotMatrix;     
         player = newplayer;
     }
 
@@ -55,9 +48,8 @@ public class GameMap
     {
         Player newplayer = player;
         Vector2d newPos = player.pos;
-        if (worldMap[(int)(player.pos.X + (player.dir.X * moveSpeed)), (int)player.pos.Y] == 0) newPos.X += (float)(player.dir.X * moveSpeed);
-        if (worldMap[(int)player.pos.X, (int)(player.pos.Y + (player.dir.Y * moveSpeed))] == 0) newPos.Y += (float)(player.dir.Y * moveSpeed);
-        
+        if (worldMap[(int)(player.pos.X + (player.dir.X * moveSpeed)), (int)player.pos.Y] == 0) newPos.X += player.dir.X * moveSpeed;
+        if (worldMap[(int)player.pos.X, (int)(player.pos.Y + (player.dir.Y * moveSpeed))] == 0) newPos.Y += player.dir.Y * moveSpeed;
         newplayer.pos = newPos;
         player = newplayer;
     }
