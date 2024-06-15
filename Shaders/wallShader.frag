@@ -16,6 +16,6 @@ void main()
     finalColor = texture(texture0, texCoord);
     if (isDark != 0)
     {
-        finalColor /= 2;
+        finalColor = vec4(finalColor.rgb/2, 1);
     }
 }

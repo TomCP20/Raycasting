@@ -40,6 +40,9 @@ public class Game : GameWindow
 
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        GL.Enable(EnableCap.Blend);
+
         vertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(vertexArrayObject);
 
@@ -216,7 +219,7 @@ public class Game : GameWindow
             double transformX = invDet * (gameMap.player.dir.Y * sprite.X - gameMap.player.dir.X * sprite.Y);
             double transformY = invDet * (-gameMap.player.plane.Y * sprite.X + gameMap.player.plane.X * sprite.Y); //this is actually the depth inside the screen, that what Z is in 3D
 
-            double spriteScreenX = (transformX / transformY);
+            double spriteScreenX = transformX / transformY;
 
             //calculate height of the sprite on screen
             double spriteHeight = Math.Abs(1 / transformY); //using 'transformY' instead of the real distance prevents fisheye
@@ -226,36 +229,22 @@ public class Game : GameWindow
             double spriteWidth = Math.Abs(1 / transformY);
 
             GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "height"), (float)spriteHeight);
-            for (double x = -spriteWidth / 2 + spriteScreenX; x < spriteWidth / 2 + spriteScreenX; x += 2.0 / Size.X)
-            {
-                if (transformY > 0 && x >= -1 && x <= 1 && transformY < ZBuffer[(int)(Size.X*(x+1)/2)])
-                {
-                    GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "x"), (float)x);
-                    GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
-                }
-            }
-
-
+            GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "texNum"), gameMap.sprites[spriteOrder[i]].texture);
             //loop through every vertical stripe of the sprite on screen
-            /*
-            for (int stripe = (int)drawStartX; stripe < drawEndX; stripe++)
+            if (transformY > 0)
             {
-                double texX = (stripe - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth;
-                //the conditions in the if are:
-                //1) it's in front of camera plane so you don't see things behind you
-                //2) it's on the screen (left)
-                //3) it's on the screen (right)
-                //4) ZBuffer, with perpendicular distance
-                if (transformY > 0 && transformY < ZBuffer[stripe])
+                for (double x = -spriteWidth / 2 + spriteScreenX; x < spriteWidth / 2 + spriteScreenX; x += 2.0 / Size.X)
                 {
-                    for (int y = (int)drawStartY; y < drawEndY; y++) //for every pixel of the current stripe
+                    double texX = (x - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth;
+
+                    if (x >= -1 && x <= 1 && transformY < ZBuffer[(int)(Size.X * (x + 1) / 2)])
                     {
-                        double d = y - (Size.Y + spriteHeight)/2; //256 and 128 factors to avoid floats
-                        double texY = d / spriteHeight;
+                        GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "x"), (float)x);
+                        GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "texX"), (float)texX);
+                        GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
                     }
                 }
             }
-            */
         }
 
     }
