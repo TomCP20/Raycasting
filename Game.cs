@@ -26,6 +26,8 @@ public class Game : GameWindow
 
     private int vertexArrayObject;
 
+    private readonly List<int> instanceVBOs = new List<int>();
+
     private Shader? wallShader;
     private Shader? floorCeilShader;
 
@@ -72,6 +74,12 @@ public class Game : GameWindow
         drawFloorCeil();
         double[] ZBuffer = drawWalls();
         drawSprites(ZBuffer);
+
+        foreach (int instanceVBO in instanceVBOs)
+        {
+            GL.DeleteBuffer(instanceVBO);
+        }
+        instanceVBOs.Clear();
 
         SwapBuffers();
     }
@@ -280,6 +288,8 @@ public class Game : GameWindow
         GL.VertexAttribPointer(attributeIndex, 1, VertexAttribPointerType.Float, false, sizeof(float), IntPtr.Zero);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.VertexAttribDivisor(attributeIndex, 1); // tell OpenGL this is an instanced vertex attribute.
+
+        instanceVBOs.Add(instanceVBO);
     }
 
     private void bufferInstanceDataVector2(Vector2[] data, int attributeIndex)
@@ -294,6 +304,8 @@ public class Game : GameWindow
         GL.VertexAttribPointer(attributeIndex, 2, VertexAttribPointerType.Float, false, Vector2.SizeInBytes, IntPtr.Zero);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.VertexAttribDivisor(attributeIndex, 1); // tell OpenGL this is an instanced vertex attribute.
+
+        instanceVBOs.Add(instanceVBO);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
