@@ -2,16 +2,15 @@
 
 out vec4 finalColor;
 
-in float texY;
+in vec2 texCoord;
 in float isDark;
-in float texX;
 in float texNum;
 
 uniform sampler2D texture0;
 
 void main()
 {
-    vec2 texCoord = vec2(((texX*63+0.5)/64 + texNum)/11, (texY*63+0.5)/64);
+    vec2 texCoord = vec2(((texCoord.x*63+0.5)/64 + texNum)/11, (texCoord.y*63+0.5)/64);
 
     finalColor = texture(texture0, texCoord);
     if (isDark != 0)
