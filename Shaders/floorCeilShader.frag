@@ -17,8 +17,8 @@ void main()
     ivec2 cell = ivec2(floor);
 
     // get the texture coordinate from the fractional part
-    vec2 t = floor - cell;
+    vec2 texCoord = floor - cell;
 
-    finalColor = texture(texture0, vec2(((t.x*63+0.5)/64 + texNum)/11, (t.y*63+0.5)/64));
+    finalColor = texture(texture0, vec2((texCoord.x + texNum)/11, texCoord.y));
     finalColor = vec4(finalColor.rgb/2, 1);
 }

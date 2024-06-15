@@ -10,7 +10,7 @@ out vec4 finalColor;
 void main()
 {
 
-    vec4 texColor = texture(texture0, vec2(((texCoord.x*63+0.5)/64 + texNum)/11, (texCoord.y*63+0.5)/64));
+    vec4 texColor = texture(texture0, vec2((texCoord.x + texNum)/11, texCoord.y));
     if (texColor == vec4(0, 0, 0, 1))
     {
         finalColor = vec4(0.0);
