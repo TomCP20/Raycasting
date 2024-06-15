@@ -233,12 +233,11 @@ public class Game : GameWindow
             //loop through every vertical stripe of the sprite on screen
             if (transformY > 0)
             {
-                for (double x = -spriteWidth / 2 + spriteScreenX; x < spriteWidth / 2 + spriteScreenX; x += 2.0 / Size.X)
+                for (double x = Math.Max(-spriteWidth / 2 + spriteScreenX, -1); x < Math.Min(spriteWidth / 2 + spriteScreenX, 1); x += 2.0 / Size.X)
                 {
-                    double texX = (x - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth;
-
                     if (x >= -1 && x <= 1 && transformY < ZBuffer[(int)(Size.X * (x + 1) / 2)])
                     {
+                        double texX = (x - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth;
                         GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "x"), (float)x);
                         GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "texX"), (float)texX);
                         GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
