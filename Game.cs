@@ -29,6 +29,8 @@ public class Game : GameWindow
     private Shader? wallShader;
     private Shader? floorCeilShader;
 
+    private Shader? spriteShader;
+
     private Texture? texture;
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
 
@@ -50,6 +52,7 @@ public class Game : GameWindow
 
         wallShader = new Shader("Shaders/wallShader.vert", "Shaders/wallShader.frag");
         floorCeilShader = new Shader("Shaders/floorCeilShader.vert", "Shaders/floorCeilShader.frag");
+        spriteShader = new Shader("Shaders/spriteShader.vert", "Shaders/spriteShader.frag");
 
         texture = Texture.LoadFromFile("Textures/atlas.gif");
         texture.Use(TextureUnit.Texture0);
@@ -65,7 +68,7 @@ public class Game : GameWindow
 
         drawFloorCeil();
         double[] ZBuffer = drawWalls();
-        //drawSprites(ZBuffer);
+        drawSprites(ZBuffer);
 
         SwapBuffers();
     }
@@ -184,6 +187,8 @@ public class Game : GameWindow
 
     private void drawSprites(double[] ZBuffer)
     {
+        Debug.Assert(spriteShader != null);
+        spriteShader.Use();
         int numSprites = gameMap.sprites.Length;
         int[] spriteOrder = new int[numSprites];
         double[] spriteDistance = new double[numSprites];
@@ -211,41 +216,46 @@ public class Game : GameWindow
             double transformX = invDet * (gameMap.player.dir.Y * sprite.X - gameMap.player.dir.X * sprite.Y);
             double transformY = invDet * (-gameMap.player.plane.Y * sprite.X + gameMap.player.plane.X * sprite.Y); //this is actually the depth inside the screen, that what Z is in 3D
 
-            int spriteScreenX = (int)(Size.X / 2 * (1 + transformX / transformY));
+            double spriteScreenX = (transformX / transformY);
 
             //calculate height of the sprite on screen
-            int spriteHeight = Math.Abs((int)(Size.Y / transformY)); //using 'transformY' instead of the real distance prevents fisheye
-                                                                     //calculate lowest and highest pixel to fill in current stripe
-            int drawStartY = -spriteHeight / 2 + Size.Y / 2;
-            if (drawStartY < 0) drawStartY = 0;
-            int drawEndY = spriteHeight / 2 + Size.Y / 2;
-            if (drawEndY >= Size.Y) drawEndY = Size.Y - 1;
+            double spriteHeight = Math.Abs(1 / transformY); //using 'transformY' instead of the real distance prevents fisheye
+                                                            //calculate lowest and highest pixel to fill in current stripe
 
             //calculate width of the sprite
-            int spriteWidth = Math.Abs((int)(Size.Y / (transformY)));
-            int drawStartX = -spriteWidth / 2 + spriteScreenX;
-            if (drawStartX < 0) drawStartX = 0;
-            int drawEndX = spriteWidth / 2 + spriteScreenX;
-            if (drawEndX >= Size.X) drawEndX = Size.X - 1;
+            double spriteWidth = Math.Abs(1 / transformY);
+
+            GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "height"), (float)spriteHeight);
+            for (double x = -spriteWidth / 2 + spriteScreenX; x < spriteWidth / 2 + spriteScreenX; x += 2.0 / Size.X)
+            {
+                if (transformY > 0 && x >= -1 && x <= 1 && transformY < ZBuffer[(int)(Size.X*(x+1)/2)])
+                {
+                    GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "x"), (float)x);
+                    GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
+                }
+            }
+
 
             //loop through every vertical stripe of the sprite on screen
-            for (int stripe = drawStartX; stripe < drawEndX; stripe++)
+            /*
+            for (int stripe = (int)drawStartX; stripe < drawEndX; stripe++)
             {
-                float texX = (stripe - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth;
+                double texX = (stripe - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth;
                 //the conditions in the if are:
                 //1) it's in front of camera plane so you don't see things behind you
                 //2) it's on the screen (left)
                 //3) it's on the screen (right)
                 //4) ZBuffer, with perpendicular distance
-                if (transformY > 0 && stripe > 0 && stripe < Size.X && transformY < ZBuffer[stripe])
+                if (transformY > 0 && transformY < ZBuffer[stripe])
                 {
-                    for (int y = drawStartY; y < drawEndY; y++) //for every pixel of the current stripe
+                    for (int y = (int)drawStartY; y < drawEndY; y++) //for every pixel of the current stripe
                     {
-                        int d = (y) * 256 - Size.Y * 128 + spriteHeight * 128; //256 and 128 factors to avoid floats
-                        int texY = (d / spriteHeight) / 256;
+                        double d = y - (Size.Y + spriteHeight)/2; //256 and 128 factors to avoid floats
+                        double texY = d / spriteHeight;
                     }
                 }
             }
+            */
         }
 
     }
@@ -255,7 +265,7 @@ public class Game : GameWindow
         Tuple<double, int>[] sprites = new Tuple<double, int>[numSprites];
         for (int i = 0; i < numSprites; i++)
         {
-            sprites[i] = new Tuple<double, int> (spriteDistance[i], spriteOrder[i]);
+            sprites[i] = new Tuple<double, int>(spriteDistance[i], spriteOrder[i]);
         }
         Array.Sort(sprites, (x, y) => y.Item1.CompareTo(x.Item1));
         // restore in reverse order to go from farthest to nearest
