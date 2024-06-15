@@ -12,7 +12,7 @@ public class Game : GameWindow
 {
     private readonly GameMap gameMap = new GameMap();
 
-    readonly float[] vertices =
+    private readonly float[] vertices =
     {
         //pos
          1f,
@@ -20,13 +20,15 @@ public class Game : GameWindow
     };
 
 
-    const int vertexCount = 2;
+    private const int vertexCount = 2;
 
     private int vertexBufferObject;
 
     private int vertexArrayObject;
 
     private readonly List<int> instanceVBOs = new List<int>();
+
+    private double[]? ZBuffer;
 
     private Shader? wallShader;
     private Shader? floorCeilShader;
@@ -72,8 +74,8 @@ public class Game : GameWindow
         texture.Use(TextureUnit.Texture0);
 
         drawFloorCeil();
-        double[] ZBuffer = drawWalls();
-        drawSprites(ZBuffer);
+        drawWalls();
+        drawSprites();
 
         foreach (int instanceVBO in instanceVBOs)
         {
@@ -138,7 +140,7 @@ public class Game : GameWindow
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.Y);
     }
 
-    private double[] drawWalls()
+    private void drawWalls()
     {
         Debug.Assert(wallShader != null);
         wallShader.Use();
@@ -149,7 +151,7 @@ public class Game : GameWindow
         float[] texXs = new float[Size.X];
         float[] texNums = new float[Size.X];
 
-        double[] ZBuffer = new double[Size.X];
+        ZBuffer = new double[Size.X];
 
         for (int x = 0; x < Size.X; x++)
         {
@@ -193,12 +195,12 @@ public class Game : GameWindow
         //draw the pixels of the stripe as a vertical line
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.X);
 
-        return ZBuffer;
     }
 
-    private void drawSprites(double[] ZBuffer)
+    private void drawSprites()
     {
         Debug.Assert(spriteShader != null);
+        Debug.Assert(ZBuffer != null);
         spriteShader.Use();
         int numSprites = gameMap.sprites.Length;
         int[] spriteOrder = new int[numSprites];
