@@ -1,9 +1,8 @@
 #version 330 core
 
-in float texY;
+in vec2 texCoord;
 
 uniform sampler2D texture0;
-uniform float texX;
 uniform int texNum;
 
 out vec4 finalColor;
@@ -11,7 +10,7 @@ out vec4 finalColor;
 void main()
 {
 
-    vec4 texColor = texture(texture0, vec2(((texX*63+0.5)/64 + texNum)/11, texY));
+    vec4 texColor = texture(texture0, vec2(((texCoord.x*63+0.5)/64 + texNum)/11, (texCoord.y*63+0.5)/64));
     if (texColor == vec4(0, 0, 0, 1))
     {
         finalColor = vec4(0.0);
@@ -20,5 +19,4 @@ void main()
     {
         finalColor = texColor;
     }
-
 }

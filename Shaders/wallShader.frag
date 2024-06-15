@@ -11,7 +11,7 @@ uniform sampler2D texture0;
 
 void main()
 {
-    vec2 texCoord = vec2(((texX*63+0.5)/64 + texNum)/11, texY);
+    vec2 texCoord = vec2(((texX*63+0.5)/64 + texNum)/11, (texY*63+0.5)/64);
 
     finalColor = texture(texture0, texCoord);
     if (isDark != 0)

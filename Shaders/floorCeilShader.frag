@@ -19,6 +19,6 @@ void main()
     // get the texture coordinate from the fractional part
     vec2 t = floor - cell;
 
-    finalColor = texture(texture0, vec2(((t.x*63+0.5)/64 + texNum)/11, t.y));
+    finalColor = texture(texture0, vec2(((t.x*63+0.5)/64 + texNum)/11, (t.y*63+0.5)/64));
     finalColor = vec4(finalColor.rgb/2, 1);
 }

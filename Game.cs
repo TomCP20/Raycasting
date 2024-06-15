@@ -228,21 +228,26 @@ public class Game : GameWindow
             //calculate width of the sprite
             double spriteWidth = Math.Abs(1 / transformY);
 
-            GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "height"), (float)spriteHeight);
-            GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "texNum"), gameMap.sprites[spriteOrder[i]].texture);
-            //loop through every vertical stripe of the sprite on screen
+
             if (transformY > 0)
             {
+                GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "height"), (float)spriteHeight);
+                GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "texNum"), gameMap.sprites[spriteOrder[i]].texture);
+                //loop through every vertical stripe of the sprite on screen
+                List<float> xs = new List<float>();
+                List<float> texXs = new List<float>();
                 for (double x = Math.Max(-spriteWidth / 2 + spriteScreenX, -1); x < Math.Min(spriteWidth / 2 + spriteScreenX, 1); x += 2.0 / Size.X)
                 {
                     if (x >= -1 && x <= 1 && transformY < ZBuffer[(int)(Size.X * (x + 1) / 2)])
                     {
+                        xs.Add((float)x);
                         double texX = (x - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth;
-                        GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "x"), (float)x);
-                        GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "texX"), (float)texX);
-                        GL.DrawArrays(PrimitiveType.Lines, 0, vertexCount);
+                        texXs.Add((float)texX);
                     }
                 }
+                bufferInstanceDataFloat(xs.ToArray(), 1);
+                bufferInstanceDataFloat(texXs.ToArray(), 2);
+                GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, xs.Count);
             }
         }
 
