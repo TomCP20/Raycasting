@@ -8,6 +8,13 @@ To run this project use the command `dotnet run` in the base folder of the proje
 
 To build this project use the command `dotnet build` in the base of folder the project.
 
+## controls
+
+* press **W** move the player forward.
+* press **S** move the player backward.
+* press **A** pan the camera left.
+* press **D** pan the camera right.
+
 ## References
 
 [Lode's Computer Graphics Tutorial: Raycasting](https://lodev.org/cgtutor/raycasting.html)
