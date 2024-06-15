@@ -40,7 +40,7 @@ public class Game : GameWindow
 
         vertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(vertexArrayObject);
-        
+
         vertexBufferObject = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
@@ -64,7 +64,8 @@ public class Game : GameWindow
         texture.Use(TextureUnit.Texture0);
 
         drawFloorCeil();
-        drawWalls();
+        double[] ZBuffer = drawWalls();
+        //drawSprites(ZBuffer);
 
         SwapBuffers();
     }
@@ -123,7 +124,7 @@ public class Game : GameWindow
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.Y);
     }
 
-    private void drawWalls()
+    private double[] drawWalls()
     {
         Debug.Assert(wallShader != null);
         wallShader.Use();
@@ -133,6 +134,8 @@ public class Game : GameWindow
         float[] isDarks = new float[Size.X];
         float[] texXs = new float[Size.X];
         float[] texNums = new float[Size.X];
+
+        double[] ZBuffer = new double[Size.X];
 
         for (int x = 0; x < Size.X; x++)
         {
@@ -163,6 +166,8 @@ public class Game : GameWindow
             texXs[x] = (float)ray.getWallX(perpWallDist);
 
             isDarks[x] = ray.side;
+
+            ZBuffer[x] = perpWallDist;
         }
 
         bufferInstanceDataFloat(heights, 1);
@@ -173,6 +178,91 @@ public class Game : GameWindow
 
         //draw the pixels of the stripe as a vertical line
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.X);
+
+        return ZBuffer;
+    }
+
+    private void drawSprites(double[] ZBuffer)
+    {
+        int numSprites = gameMap.sprites.Length;
+        int[] spriteOrder = new int[numSprites];
+        double[] spriteDistance = new double[numSprites];
+        //sort sprites from far to close
+        for (int i = 0; i < numSprites; i++)
+        {
+            spriteOrder[i] = i;
+            spriteDistance[i] = (gameMap.player.pos.X - gameMap.sprites[i].pos.X) * (gameMap.player.pos.X - gameMap.sprites[i].pos.X) + (gameMap.player.pos.Y - gameMap.sprites[i].pos.Y) * (gameMap.player.pos.Y - gameMap.sprites[i].pos.Y);
+        }
+        sortSprites(spriteOrder, spriteDistance, numSprites);
+
+        //after sorting the sprites, do the projection and draw them
+        for (int i = 0; i < numSprites; i++)
+        {
+            //translate sprite position to relative to camera
+            Vector2d sprite = gameMap.sprites[spriteOrder[i]].pos - gameMap.player.pos;
+
+            //transform sprite with the inverse camera matrix
+            // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+            // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+            // [ planeY   dirY ]                                          [ -planeY  planeX ]
+
+            double invDet = 1.0 / (gameMap.player.plane.X * gameMap.player.dir.Y - gameMap.player.dir.X * gameMap.player.plane.Y); //required for correct matrix multiplication
+
+            double transformX = invDet * (gameMap.player.dir.Y * sprite.X - gameMap.player.dir.X * sprite.Y);
+            double transformY = invDet * (-gameMap.player.plane.Y * sprite.X + gameMap.player.plane.X * sprite.Y); //this is actually the depth inside the screen, that what Z is in 3D
+
+            int spriteScreenX = (int)(Size.X / 2 * (1 + transformX / transformY));
+
+            //calculate height of the sprite on screen
+            int spriteHeight = Math.Abs((int)(Size.Y / transformY)); //using 'transformY' instead of the real distance prevents fisheye
+                                                                     //calculate lowest and highest pixel to fill in current stripe
+            int drawStartY = -spriteHeight / 2 + Size.Y / 2;
+            if (drawStartY < 0) drawStartY = 0;
+            int drawEndY = spriteHeight / 2 + Size.Y / 2;
+            if (drawEndY >= Size.Y) drawEndY = Size.Y - 1;
+
+            //calculate width of the sprite
+            int spriteWidth = Math.Abs((int)(Size.Y / (transformY)));
+            int drawStartX = -spriteWidth / 2 + spriteScreenX;
+            if (drawStartX < 0) drawStartX = 0;
+            int drawEndX = spriteWidth / 2 + spriteScreenX;
+            if (drawEndX >= Size.X) drawEndX = Size.X - 1;
+
+            //loop through every vertical stripe of the sprite on screen
+            for (int stripe = drawStartX; stripe < drawEndX; stripe++)
+            {
+                float texX = (stripe - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth;
+                //the conditions in the if are:
+                //1) it's in front of camera plane so you don't see things behind you
+                //2) it's on the screen (left)
+                //3) it's on the screen (right)
+                //4) ZBuffer, with perpendicular distance
+                if (transformY > 0 && stripe > 0 && stripe < Size.X && transformY < ZBuffer[stripe])
+                {
+                    for (int y = drawStartY; y < drawEndY; y++) //for every pixel of the current stripe
+                    {
+                        int d = (y) * 256 - Size.Y * 128 + spriteHeight * 128; //256 and 128 factors to avoid floats
+                        int texY = (d / spriteHeight) / 256;
+                    }
+                }
+            }
+        }
+
+    }
+
+    private void sortSprites(int[] spriteOrder, double[] spriteDistance, int numSprites)
+    {
+        Tuple<double, int>[] sprites = new Tuple<double, int>[numSprites];
+        for (int i = 0; i < numSprites; i++)
+        {
+            sprites[i] = new Tuple<double, int> (spriteDistance[i], spriteOrder[i]);
+        }
+        Array.Sort(sprites, (x, y) => y.Item1.CompareTo(x.Item1));
+        // restore in reverse order to go from farthest to nearest
+        for (int i = 0; i < numSprites; i++)
+        {
+            (spriteDistance[i], spriteOrder[i]) = sprites[i];
+        }
     }
 
     private void bufferInstanceDataFloat(float[] data, int attributeIndex)
