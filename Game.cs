@@ -63,6 +63,9 @@ public class Game : GameWindow
 
         texture = Texture.LoadFromFile("Textures/atlas.gif");
         texture.Use(TextureUnit.Texture0);
+
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
