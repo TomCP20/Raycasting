@@ -30,6 +30,8 @@ public class Game : GameWindow
 
     private double[]? ZBuffer;
 
+    private ComputeShader? wallComputeShader;
+
     private Shader? wallShader;
     private Shader? floorCeilShader;
 
@@ -76,6 +78,8 @@ public class Game : GameWindow
         wallShader = new Shader("Shaders/wallShader.vert", "Shaders/wallShader.frag");
         floorCeilShader = new Shader("Shaders/floorCeilShader.vert", "Shaders/floorCeilShader.frag");
         spriteShader = new Shader("Shaders/spriteShader.vert", "Shaders/spriteShader.frag");
+
+        wallComputeShader = new ComputeShader("Shaders/wallShader.comp");
 
         texture = Texture.LoadFromFiles(paths);
         texture.Use(TextureUnit.Texture0);
@@ -159,6 +163,7 @@ public class Game : GameWindow
     private void drawWalls()
     {
         Debug.Assert(wallShader != null);
+        Debug.Assert(wallComputeShader != null);
         wallShader.Use();
 
         float[] heights = new float[Size.X];
