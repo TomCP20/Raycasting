@@ -110,7 +110,7 @@ public class Game : GameWindow
     {
         Debug.Assert(floorCeilShader != null);
         floorCeilShader.Use();
-        GL.Uniform1(GL.GetUniformLocation(floorCeilShader.Handle, "width"), Size.X);
+        floorCeilShader.SetInt("width", Size.X);
 
         Vector2[] floor0s = new Vector2[Size.Y];
         Vector2[] floorSteps = new Vector2[Size.Y];
@@ -162,9 +162,9 @@ public class Game : GameWindow
 
     private void drawWalls()
     {
-        Debug.Assert(wallShader != null);
         Debug.Assert(wallComputeShader != null);
-        wallShader.Use();
+        wallComputeShader.Use();
+        GL.DispatchCompute(Size.X, 1, 1);
 
         float[] heights = new float[Size.X];
         float[] cameraXs = new float[Size.X];
@@ -206,6 +206,9 @@ public class Game : GameWindow
 
             ZBuffer[x] = perpWallDist;
         }
+
+        Debug.Assert(wallShader != null);
+        wallShader.Use();
 
         bufferInstanceDataFloat(heights, 1);
         bufferInstanceDataFloat(cameraXs, 2);
@@ -262,8 +265,8 @@ public class Game : GameWindow
 
             if (transformY > 0)
             {
-                GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "height"), (float)spriteHeight);
-                GL.Uniform1(GL.GetUniformLocation(spriteShader.Handle, "texNum"), gameMap.sprites[spriteOrder[i]].texture);
+                spriteShader.SetFloat("height", (float)spriteHeight);
+                spriteShader.SetInt("texNum", gameMap.sprites[spriteOrder[i]].texture);
                 //loop through every vertical stripe of the sprite on screen
                 List<float> xs = new List<float>();
                 List<float> texXs = new List<float>();
