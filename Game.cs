@@ -164,6 +164,7 @@ public class Game : GameWindow
     private void drawWalls()
     {
         Debug.Assert(wallComputeShader != null);
+        Debug.Assert(wallShader != null);
         wallComputeShader.Use();
         for(int i = 0; i < gameMap.worldMap.GetLength(0); i++)
         {
@@ -177,6 +178,7 @@ public class Game : GameWindow
         wallComputeShader.SetVector2("dir", (Vector2)gameMap.player.dir);
         wallComputeShader.SetVector2("plane", (Vector2)gameMap.player.plane);
         
+        
         int texture = GL.GenTexture();
         GL.ActiveTexture(TextureUnit.Texture1);
         GL.BindTexture(TextureTarget.Texture1D, texture);
@@ -186,18 +188,12 @@ public class Game : GameWindow
         GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, Size.X, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
 
         GL.BindImageTexture(0, texture, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
-
         
-
         GL.DispatchCompute(Size.X, 1, 1);
         GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
 
 
-        float[] heights = new float[Size.X];
         float[] cameraXs = new float[Size.X];
-        float[] isDarks = new float[Size.X];
-        float[] texXs = new float[Size.X];
-        float[] texNums = new float[Size.X];
 
         ZBuffer = new double[Size.X];
 
@@ -220,28 +216,11 @@ public class Game : GameWindow
             //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
             double perpWallDist = ray.getPerpWallDist();
 
-            //Calculate height of line to draw on screen
-            heights[x] = (float)(1.0f / perpWallDist);
-
-            //texturing calculations
-            texNums[x] = gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] - 1; //1 subtracted from it so that texture 0 can be used!
-
-            //calculate value of wallX
-            texXs[x] = (float)ray.getWallX(perpWallDist);
-
-            isDarks[x] = ray.side;
-
             ZBuffer[x] = perpWallDist;
         }
-
-        Debug.Assert(wallShader != null);
+        
         wallShader.Use();
-
-        bufferInstanceDataFloat(heights, 1);
-        bufferInstanceDataFloat(cameraXs, 2);
-        bufferInstanceDataFloat(isDarks, 3);
-        bufferInstanceDataFloat(texXs, 4);
-        bufferInstanceDataFloat(texNums, 5);
+        wallShader.SetInt("width", Size.X);
 
         //draw the pixels of the stripe as a vertical line
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.X);

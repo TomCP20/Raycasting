@@ -12,7 +12,7 @@ uniform vec2 plane;
 
 void main()
 {
-  float cameraX = float((gl_GlobalInvocationID.x * 2.0 / gl_WorkGroupSize.x) - 1.0); //x-coordinate in camera space
+  float cameraX = float((gl_GlobalInvocationID.x * 2.0 / gl_NumWorkGroups.x) - 1.0); //x-coordinate in camera space
   vec2 rayDir = dir + (plane * cameraX);
   ivec2 mapPos = ivec2(pos);
 
@@ -74,29 +74,34 @@ void main()
   else
     perpWallDist = (sideDist.y - deltaDist.y);
 
-  float height = (1 / perpWallDist);
-
   int texNum = map[mapPos.x * mapWidth + mapPos.y] - 1;
 
   //calculate value of wallX
-  float texX; //where exactly the wall was hit
+  float texX;
   if(side == 0)
-    texX = pos.y + perpWallDist * dir.y;
+  {
+    texX = pos.y + perpWallDist * rayDir.y;
+  }
   else
-    texX = pos.x + perpWallDist * dir.x;
+  {
+    texX = pos.x + perpWallDist * rayDir.x;
+  }
   texX -= floor(texX);
 
-  //x coordinate on the texture
-  if(side == 0 && dir.x > 0)
+        //x coordinate on the texture
+  if(side == 0 && rayDir.x > 0)
+  {
     texX = 1 - texX;
-
-  if(side == 1 && dir.y < 0)
+  }
+  if(side == 1 && rayDir.y < 0)
+  {
     texX = 1 - texX;
+  }
 
   //outputs
   //perpWallDist  float 0 to 24ish  inverse of height
   //texX          float 0 to 1
   //texNum        int   0 to 7
   //side          int   0 to 1
-  imageStore(imgOutput, int(gl_GlobalInvocationID.x), vec4(perpWallDist/24, texX, texNum/7, side));
+  imageStore(imgOutput, int(gl_GlobalInvocationID.x), vec4(perpWallDist / 24, texX, texNum / 7.0f, side));
 }
