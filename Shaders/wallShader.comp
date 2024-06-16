@@ -3,15 +3,93 @@
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 
+uniform int mapWidth;
+uniform int map[1000];
+
 uniform vec2 pos;
 uniform vec2 dir;
 uniform vec2 plane;
 
 void main()
 {
-    float cameraX = float((gl_GlobalInvocationID.x * 2.0 / gl_WorkGroupSize.x) - 1.0); //x-coordinate in camera space
+  float cameraX = float((gl_GlobalInvocationID.x * 2.0 / gl_WorkGroupSize.x) - 1.0); //x-coordinate in camera space
+  vec2 rayDir = dir + (plane * cameraX);
+  ivec2 mapPos = ivec2(pos);
 
-    //calculate ray position and direction
-    vec2 rayDir = dir + (plane * cameraX);
-    ivec2 mapPos = ivec2(pos);
+  vec2 sideDist;
+
+  vec2 deltaDist = abs(1.0 / rayDir);
+  float perpWallDist;
+
+  ivec2 step;
+
+  int hit = 0; //was there a wall hit?
+  int side; //was a NS or a EW wall hit?
+
+    //calculate step and initial sideDist
+  if(rayDir.x < 0)
+  {
+    step.x = -1;
+    sideDist.x = (pos.x - mapPos.x) * deltaDist.x;
+  }
+  else
+  {
+    step.x = 1;
+    sideDist.x = (mapPos.x + 1.0 - pos.x) * deltaDist.x;
+  }
+  if(rayDir.y < 0)
+  {
+    step.y = -1;
+    sideDist.y = (pos.y - mapPos.y) * deltaDist.y;
+  }
+  else
+  {
+    step.y = 1;
+    sideDist.y = (mapPos.y + 1.0 - pos.y) * deltaDist.y;
+  }
+
+  //perform DDA
+  while(hit == 0)
+  {
+    //jump to next map square, either in x-direction, or in y-direction
+    if(sideDist.x < sideDist.y)
+    {
+      sideDist.x += deltaDist.x;
+      mapPos.x += step.x;
+      side = 0;
+    }
+    else
+    {
+      sideDist.y += deltaDist.y;
+      mapPos.y += step.y;
+      side = 1;
+    }
+    //Check if ray has hit a wall
+    if(map[mapPos.x * mapWidth + mapPos.y] > 0)
+      hit = 1;
+  }
+
+  if(side == 0)
+    perpWallDist = (sideDist.x - deltaDist.x);
+  else
+    perpWallDist = (sideDist.y - deltaDist.y);
+
+  float lineHeight = (1 / perpWallDist);
+
+  int texNum = map[mapPos.x * mapWidth + mapPos.y] - 1;
+
+  //calculate value of wallX
+  float wallX; //where exactly the wall was hit
+  if(side == 0)
+    wallX = pos.y + perpWallDist * dir.y;
+  else
+    wallX = pos.x + perpWallDist * dir.x;
+  wallX -= floor(wallX);
+
+  //x coordinate on the texture
+  if(side == 0 && dir.x > 0)
+    wallX = 1 - wallX;
+
+  if(side == 1 && dir.y < 0)
+    wallX = 1 - wallX;
 }

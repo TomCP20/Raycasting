@@ -53,7 +53,7 @@ public class Game : GameWindow
         
     };
 
-    private Texture? texture;
+    private Texture? textureArray;
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
 
     protected override void OnLoad()
@@ -79,19 +79,19 @@ public class Game : GameWindow
         floorCeilShader = new Shader("Shaders/floorCeilShader.vert", "Shaders/floorCeilShader.frag");
         spriteShader = new Shader("Shaders/spriteShader.vert", "Shaders/spriteShader.frag");
 
-        wallComputeShader = new ComputeShader("Shaders/wallShader.comp");
+        wallComputeShader = new ComputeShader("Shaders/wallShader.comp");       
 
-        texture = Texture.LoadFromFiles(paths);
-        texture.Use(TextureUnit.Texture0);
+        textureArray = Texture.LoadFromFiles(paths);
+        textureArray.Use(TextureUnit.Texture0);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
     {
-        Debug.Assert(texture != null);
-
         base.OnRenderFrame(args);
         GL.Clear(ClearBufferMask.ColorBufferBit);
-        texture.Use(TextureUnit.Texture0);
+
+        Debug.Assert(textureArray != null);
+        textureArray.Use(TextureUnit.Texture0);
 
         drawFloorCeil();
         drawWalls();
@@ -164,6 +164,14 @@ public class Game : GameWindow
     {
         Debug.Assert(wallComputeShader != null);
         wallComputeShader.Use();
+        for(int i = 0; i < gameMap.worldMap.GetLength(0); i++)
+        {
+            for (int j = 0; j < gameMap.worldMap.GetLength(1); j++)
+            {
+                GL.Uniform1(GL.GetUniformLocation(wallComputeShader.Handle, $"map[{i * gameMap.worldMap.GetLength(0) + j}]"), gameMap.worldMap[i, j]);
+            }
+        } 
+        wallComputeShader.SetInt("mapWidth", gameMap.worldMap.GetLength(0));
         wallComputeShader.SetVector2("pos", (Vector2)gameMap.player.pos);
         wallComputeShader.SetVector2("dir", (Vector2)gameMap.player.dir);
         wallComputeShader.SetVector2("plane", (Vector2)gameMap.player.plane);
