@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using Microsoft.VisualBasic;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
@@ -176,7 +177,21 @@ public class Game : GameWindow
         wallComputeShader.SetVector2("dir", (Vector2)gameMap.player.dir);
         wallComputeShader.SetVector2("plane", (Vector2)gameMap.player.plane);
         
+        int texture = GL.GenTexture();
+        GL.ActiveTexture(TextureUnit.Texture1);
+        GL.BindTexture(TextureTarget.Texture1D, texture);
+        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
+        GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, Size.X, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
+
+        GL.BindImageTexture(0, texture, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
+
+        
+
         GL.DispatchCompute(Size.X, 1, 1);
+        GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
+
 
         float[] heights = new float[Size.X];
         float[] cameraXs = new float[Size.X];
