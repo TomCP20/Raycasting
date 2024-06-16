@@ -151,6 +151,8 @@ public class Game : GameWindow
             floor0s[Size.Y - y - 1] = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
         }
 
+        
+
         floorCeilShader.Use();
         floorCeilShader.SetInt("width", Size.X);
         floorCeilShader.SetInt("height", Size.Y);
