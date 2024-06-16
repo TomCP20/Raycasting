@@ -55,6 +55,8 @@ public class Game : GameWindow
     };
 
     private Texture? textureArray;
+
+    private readonly int[] computeTextures = new int[3];
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
 
     protected override void OnLoad()
@@ -84,6 +86,8 @@ public class Game : GameWindow
 
         textureArray = Texture.LoadFromFiles(paths);
         textureArray.Use(TextureUnit.Texture0);
+
+        GL.GenTextures(3, computeTextures);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
@@ -178,16 +182,12 @@ public class Game : GameWindow
         wallComputeShader.SetVector2("dir", (Vector2)gameMap.player.dir);
         wallComputeShader.SetVector2("plane", (Vector2)gameMap.player.plane);
         
-        
-        int texture = GL.GenTexture();
         GL.ActiveTexture(TextureUnit.Texture1);
-        GL.BindTexture(TextureTarget.Texture1D, texture);
-        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
         GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);      
+        GL.BindTexture(TextureTarget.Texture1D, computeTextures[1]);
         GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, Size.X, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
-
-        GL.BindImageTexture(0, texture, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
+        GL.BindImageTexture(1, computeTextures[1], 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
         
         GL.DispatchCompute(Size.X, 1, 1);
         GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
@@ -224,8 +224,6 @@ public class Game : GameWindow
 
         //draw the pixels of the stripe as a vertical line
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.X);
-
-        GL.DeleteTexture(texture);
     }
 
     private void drawSprites()
@@ -397,6 +395,8 @@ public class Game : GameWindow
         GL.DeleteVertexArray(vertexArrayObject);
 
         GL.DeleteProgram(wallShader.Handle);
+
+        GL.DeleteTextures(3, computeTextures);
 
         base.OnUnload();
     }

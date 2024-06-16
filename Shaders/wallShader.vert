@@ -1,7 +1,7 @@
 #version 430 core
 
 layout(location = 0) in float vertexY;
-layout(rgba32f, binding = 0) uniform image1D imgInput;
+layout(rgba32f, binding = 1) uniform image1D imgInput;
 
 uniform int width;
 
