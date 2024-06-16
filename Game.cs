@@ -33,6 +33,8 @@ public class Game : GameWindow
 
     private ComputeShader? wallComputeShader;
 
+    private ComputeShader? floorCeilComputeShader;
+
     private Shader? wallShader;
     private Shader? floorCeilShader;
 
@@ -82,7 +84,8 @@ public class Game : GameWindow
         floorCeilShader = new Shader("Shaders/floorCeilShader.vert", "Shaders/floorCeilShader.frag");
         spriteShader = new Shader("Shaders/spriteShader.vert", "Shaders/spriteShader.frag");
 
-        wallComputeShader = new ComputeShader("Shaders/wallShader.comp");       
+        wallComputeShader = new ComputeShader("Shaders/wallShader.comp");
+        floorCeilComputeShader = new ComputeShader("Shaders/floorCeilShader.comp");      
 
         textureArray = Texture.LoadFromFiles(paths);
         textureArray.Use(TextureUnit.Texture0);
@@ -114,13 +117,11 @@ public class Game : GameWindow
     private void drawFloorCeil()
     {
         Debug.Assert(floorCeilShader != null);
-        floorCeilShader.Use();
-        floorCeilShader.SetInt("width", Size.X);
+        Debug.Assert(floorCeilComputeShader != null);
+        
 
         Vector2[] floor0s = new Vector2[Size.Y];
         Vector2[] floorSteps = new Vector2[Size.Y];
-        float[] ys = new float[Size.Y];
-        float[] texNums = new float[Size.Y];
 
         // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
         Vector2 rayDir0 = (Vector2)(gameMap.player.dir - gameMap.player.plane);
@@ -148,19 +149,16 @@ public class Game : GameWindow
             // real world coordinates of the leftmost column. This will be updated as we step to the right.
             floor0s[y] = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
             floor0s[Size.Y - y - 1] = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
-
-            texNums[y] = 3;
-            texNums[Size.Y - y - 1] = 6;
-
-            ys[y] = (float)((y * 2.0 / Size.Y) - 1.0);
-            ys[Size.Y - y - 1] = (float)(((Size.Y - y - 1) * 2.0 / Size.Y) - 1.0);
-
         }
+
+        floorCeilShader.Use();
+        floorCeilShader.SetInt("width", Size.X);
+        floorCeilShader.SetInt("height", Size.Y);
+        floorCeilShader.SetInt("floorTexNum", 3);
+        floorCeilShader.SetInt("ceilTexNum", 6);
 
         bufferInstanceDataVector2(floor0s, 1);
         bufferInstanceDataVector2(floorSteps, 2);
-        bufferInstanceDataFloat(ys, 3);
-        bufferInstanceDataFloat(texNums, 4);
 
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.Y);
     }

@@ -103,5 +103,5 @@ void main()
   //texX          float 0 to 1
   //texNum        int   0 to 7
   //side          int   0 to 1
-  imageStore(imgOutput, int(gl_GlobalInvocationID.x), vec4(perpWallDist / 24, texX, texNum / 7.0f, side));
+  imageStore(imgOutput, int(gl_GlobalInvocationID.x), vec4(perpWallDist / 24, texX, texNum / 7.0, side));
 }
