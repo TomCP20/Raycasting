@@ -4,7 +4,7 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 
 uniform int mapWidth;
-uniform int map[1000];
+uniform int map[576];
 
 uniform vec2 pos;
 uniform vec2 dir;
@@ -74,22 +74,30 @@ void main()
   else
     perpWallDist = (sideDist.y - deltaDist.y);
 
-  float lineHeight = (1 / perpWallDist);
+  float height = (1 / perpWallDist);
 
   int texNum = map[mapPos.x * mapWidth + mapPos.y] - 1;
 
   //calculate value of wallX
-  float wallX; //where exactly the wall was hit
+  float texX; //where exactly the wall was hit
   if(side == 0)
-    wallX = pos.y + perpWallDist * dir.y;
+    texX = pos.y + perpWallDist * dir.y;
   else
-    wallX = pos.x + perpWallDist * dir.x;
-  wallX -= floor(wallX);
+    texX = pos.x + perpWallDist * dir.x;
+  texX -= floor(texX);
 
   //x coordinate on the texture
   if(side == 0 && dir.x > 0)
-    wallX = 1 - wallX;
+    texX = 1 - texX;
 
   if(side == 1 && dir.y < 0)
-    wallX = 1 - wallX;
+    texX = 1 - texX;
+
+  //outputs
+  //cameraX   float -1 to 1
+  //height    float 0 to inf
+  //texNum    int   0 to 7
+  //texX      float 0 to 1
+  //side      int   0 to 1
+  //ZBuffer   float 0 to 24ish  inverse of height
 }
