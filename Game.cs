@@ -164,6 +164,10 @@ public class Game : GameWindow
     {
         Debug.Assert(wallComputeShader != null);
         wallComputeShader.Use();
+        wallComputeShader.SetVector2("pos", (Vector2)gameMap.player.pos);
+        wallComputeShader.SetVector2("dir", (Vector2)gameMap.player.dir);
+        wallComputeShader.SetVector2("plane", (Vector2)gameMap.player.plane);
+        
         GL.DispatchCompute(Size.X, 1, 1);
 
         float[] heights = new float[Size.X];
