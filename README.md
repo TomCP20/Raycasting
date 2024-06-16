@@ -10,10 +10,10 @@ To build this project use the command `dotnet build` in the base of folder the p
 
 ## controls
 
-* press **W** move the player forward.
-* press **S** move the player backward.
-* press **A** pan the camera left.
-* press **D** pan the camera right.
+* press <kbd>W</kbd> or <kbd>↑</kbd> to move the player forwards.
+* press <kbd>S</kbd> or <kbd>↓</kbd> to move the player backwards.
+* press <kbd>A</kbd> or <kbd>←</kbd> pan the camera left.
+* press <kbd>D</kbd> or <kbd>→</kbd> pan the camera right.
 
 ## References
 

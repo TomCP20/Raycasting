@@ -331,22 +331,22 @@ public class Game : GameWindow
         double rotSpeed = (float)args.Time * 3.0;
 
         //move forward if no wall in front of you
-        if (input.IsKeyDown(Keys.Up))
+        if (input.IsKeyDown(Keys.Up) || input.IsKeyDown(Keys.W))
         {
             gameMap.MovePlayer(moveSpeed);
         }
         //move backwards if no wall behind you
-        if (input.IsKeyDown(Keys.Down))
+        if (input.IsKeyDown(Keys.Down) || input.IsKeyDown(Keys.S))
         {
             gameMap.MovePlayer(-moveSpeed);
         }
         //rotate to the right
-        if (input.IsKeyDown(Keys.Right))
+        if (input.IsKeyDown(Keys.Right) || input.IsKeyDown(Keys.D))
         {
             gameMap.SpinPlayer(-rotSpeed);
         }
         //rotate to the left
-        if (input.IsKeyDown(Keys.Left))
+        if (input.IsKeyDown(Keys.Left) || input.IsKeyDown(Keys.A))
         {
             gameMap.SpinPlayer(rotSpeed);
         }
