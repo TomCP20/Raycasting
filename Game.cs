@@ -225,6 +225,7 @@ public class Game : GameWindow
         //draw the pixels of the stripe as a vertical line
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.X);
 
+        GL.DeleteTexture(texture);
     }
 
     private void drawSprites()
