@@ -198,7 +198,7 @@ public class Game : GameWindow
             double perpWallDist = ray.getPerpWallDist();
 
             //Calculate height of line to draw on screen
-            heights[x] = (float)(Size.Y / (perpWallDist * 500.0f));
+            heights[x] = (float)(1.0f / perpWallDist);
 
             //texturing calculations
             texNums[x] = gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] - 1; //1 subtracted from it so that texture 0 can be used!
