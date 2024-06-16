@@ -2,7 +2,7 @@
 
 in vec2 texCoord;
 
-uniform sampler2D texture0;
+uniform sampler2DArray texture0;
 uniform int texNum;
 
 out vec4 finalColor;
@@ -10,7 +10,7 @@ out vec4 finalColor;
 void main()
 {
 
-    vec4 texColor = texture(texture0, vec2((texCoord.x + texNum)/11, texCoord.y));
+    vec4 texColor = texture(texture0, vec3(texCoord.x , texCoord.y, texNum));
     if (texColor == vec4(0, 0, 0, 1))
     {
         finalColor = vec4(0.0);

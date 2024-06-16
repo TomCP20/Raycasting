@@ -5,7 +5,7 @@ in vec2 floor0;
 in vec2 floorStep;
 in float texNum;
 
-uniform sampler2D texture0;
+uniform sampler2DArray texture0;
 
 out vec4 finalColor;
 
@@ -19,6 +19,6 @@ void main()
     // get the texture coordinate from the fractional part
     vec2 texCoord = floor - cell;
 
-    finalColor = texture(texture0, vec2((texCoord.x + texNum)/11, texCoord.y));
+    finalColor = texture(texture0, vec3(texCoord.x , texCoord.y, texNum));
     finalColor = vec4(finalColor.rgb/2, 1);
 }

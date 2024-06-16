@@ -35,6 +35,22 @@ public class Game : GameWindow
 
     private Shader? spriteShader;
 
+    private readonly string[] paths = 
+    {
+        "Textures/eagle.png",
+        "Textures/redbrick.png",
+        "Textures/purplestone.png",
+        "Textures/greystone.png",
+        "Textures/bluestone.png",
+        "Textures/mossy.png",
+        "Textures/colorstone.png",
+        "Textures/wood.png",
+        "Textures/barrel.png",
+        "Textures/pillar.png",
+        "Textures/greenlight.png",
+        
+    };
+
     private Texture? texture;
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
 
@@ -61,7 +77,7 @@ public class Game : GameWindow
         floorCeilShader = new Shader("Shaders/floorCeilShader.vert", "Shaders/floorCeilShader.frag");
         spriteShader = new Shader("Shaders/spriteShader.vert", "Shaders/spriteShader.frag");
 
-        texture = Texture.LoadFromFile("Textures/atlas.gif");
+        texture = Texture.LoadFromFiles(paths);
         texture.Use(TextureUnit.Texture0);
     }
 
