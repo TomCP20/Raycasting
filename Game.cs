@@ -124,6 +124,7 @@ public class Game : GameWindow
         Vector2 rayDir1 = (Vector2)(gameMap.player.dir + gameMap.player.plane);
         
         floorCeilComputeShader.SetInt("width", Size.X);
+        floorCeilComputeShader.SetInt("height", Size.Y);
         floorCeilComputeShader.SetVector2("pos", (Vector2)gameMap.player.pos);
         floorCeilComputeShader.SetVector2("rayDir0", rayDir0);
         floorCeilComputeShader.SetVector2("rayDir1", rayDir1);
@@ -138,45 +139,12 @@ public class Game : GameWindow
         GL.DispatchCompute(1, (int)Math.Ceiling(Size.Y / 2.0f), 1);
         GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
         
-
-        Vector2[] floor0s = new Vector2[Size.Y];
-        Vector2[] floorSteps = new Vector2[Size.Y];
-        
-
-        //Size.Y / 2
-        for (int y = 0; y < Math.Floor(Size.Y / 2.0f); y++)
-        {
-            // Current y position compared to the center of the screen (the horizon)
-            int p = -(y - Size.Y / 2);
-
-            // Vertical position of the camera.
-            float posZ = (float)(0.5 * Size.Y);
-
-            // Horizontal distance from the camera to the floor for the current row.
-            // 0.5 is the z position exactly in the middle between floor and ceiling.
-            float rowDistance = posZ / p;
-
-            // calculate the real world step vector we have to add for each x (parallel to camera plane)
-            // adding step by step avoids multiplications with a weight in the inner loop
-
-            floorSteps[y] = rowDistance * (rayDir1 - rayDir0) / Size.X;
-            floorSteps[Size.Y - y - 1] = rowDistance * (rayDir1 - rayDir0) / Size.X;
-
-            // real world coordinates of the leftmost column. This will be updated as we step to the right.
-            floor0s[y] = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
-            floor0s[Size.Y - y - 1] = (Vector2)(gameMap.player.pos + rowDistance * rayDir0);
-        }
-
-        
-
         floorCeilShader.Use();
         floorCeilShader.SetInt("width", Size.X);
         floorCeilShader.SetInt("height", Size.Y);
         floorCeilShader.SetInt("floorTexNum", 3);
         floorCeilShader.SetInt("ceilTexNum", 6);
 
-        bufferInstanceDataVector2(floor0s, 1);
-        bufferInstanceDataVector2(floorSteps, 2);
 
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.Y);
     }
@@ -333,22 +301,6 @@ public class Game : GameWindow
         GL.EnableVertexAttribArray(attributeIndex);
         GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO); // this attribute comes from a different vertex buffer
         GL.VertexAttribPointer(attributeIndex, 1, VertexAttribPointerType.Float, false, sizeof(float), IntPtr.Zero);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.VertexAttribDivisor(attributeIndex, 1); // tell OpenGL this is an instanced vertex attribute.
-
-        instanceVBOs.Add(instanceVBO);
-    }
-
-    private void bufferInstanceDataVector2(Vector2[] data, int attributeIndex)
-    {
-        int instanceVBO = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO);
-        GL.BufferData(BufferTarget.ArrayBuffer, Vector2.SizeInBytes * data.Length, data, BufferUsageHint.StaticDraw);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-
-        GL.EnableVertexAttribArray(attributeIndex);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO); // this attribute comes from a different vertex buffer
-        GL.VertexAttribPointer(attributeIndex, 2, VertexAttribPointerType.Float, false, Vector2.SizeInBytes, IntPtr.Zero);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.VertexAttribDivisor(attributeIndex, 1); // tell OpenGL this is an instanced vertex attribute.
 

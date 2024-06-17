@@ -1,8 +1,7 @@
-#version 330 core
+#version 430 core
 
 layout (location = 0) in float vertexX;
-layout (location = 1) in vec2 aFloor0;
-layout (location = 2) in vec2 aFloorStep;
+layout(rgba32f, binding = 0) uniform image1D imgInput;
 
 uniform int width;
 uniform int height;
@@ -15,9 +14,10 @@ out float texNum;
 
 void main()
 {
+    vec4 pixel = imageLoad(imgInput, gl_InstanceID);
     x = ((vertexX + 1)/2)*width;
     float y = ((float(gl_InstanceID) / float(height)) * 2.0 - 1.0);
-    floor = aFloor0 + x * aFloorStep;
+    floor = pixel.rg + x * pixel.ba;
     if (y < 0)
     {
         texNum = floorTexNum;
