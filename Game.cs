@@ -251,26 +251,26 @@ public class Game : GameWindow
             //calculate width of the sprite
             double spriteWidth = Math.Abs(1 / transformY);
 
+            int xstart = Math.Max((int)(Size.X * (-spriteWidth / 2 + spriteScreenX + 1) / 2), 0);
+            int xend = Math.Min((int)(Size.X * (spriteWidth / 2 + spriteScreenX + 1) / 2), Size.X);
 
-            if (transformY > 0)
+            if (transformY > 0 && xend-xstart > 0)
             {
-                spriteShader.SetFloat("height", (float)spriteHeight);
-                spriteShader.SetInt("texNum", gameMap.sprites[spriteOrder[i]].texture);
-                //loop through every vertical stripe of the sprite on screen
-                List<float> xs = new List<float>();
-                List<float> texXs = new List<float>();
-                for (double x = Math.Max(-spriteWidth / 2 + spriteScreenX, -1); x < Math.Min(spriteWidth / 2 + spriteScreenX, 1); x += 2.0 / Size.X)
+                float[] texXs = new float[xend-xstart];
+                for (int x = xstart; x < xend; x ++)
                 {
-                    if (transformY < ZBuffer[(int)(Size.X * (x + 1) / 2)])
+                    if (transformY < ZBuffer[x])
                     {
-                        xs.Add((float)x);
-                        double texX = (x - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth;
-                        texXs.Add((float)texX);
+                        float texX = (float)(((2.0* x / Size.X) -1 - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth);
+                        texXs[x - xstart] = texX;
                     }
                 }
-                bufferInstanceDataFloat(xs.ToArray(), 1);
-                bufferInstanceDataFloat(texXs.ToArray(), 2);
-                GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, xs.Count);
+                spriteShader.SetFloat("spriteheight", (float)spriteHeight);
+                spriteShader.SetInt("screenwidth", Size.X);
+                spriteShader.SetInt("texNum", gameMap.sprites[spriteOrder[i]].texture);
+                spriteShader.SetInt("xoffset", xstart);
+                bufferInstanceDataFloat(texXs.ToArray(), 1);
+                GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, xend - xstart);
             }
         }
 
