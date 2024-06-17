@@ -118,14 +118,30 @@ public class Game : GameWindow
     {
         Debug.Assert(floorCeilShader != null);
         Debug.Assert(floorCeilComputeShader != null);
-        
-
-        Vector2[] floor0s = new Vector2[Size.Y];
-        Vector2[] floorSteps = new Vector2[Size.Y];
 
         // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
         Vector2 rayDir0 = (Vector2)(gameMap.player.dir - gameMap.player.plane);
         Vector2 rayDir1 = (Vector2)(gameMap.player.dir + gameMap.player.plane);
+        
+        floorCeilComputeShader.SetInt("width", Size.X);
+        floorCeilComputeShader.SetVector2("pos", (Vector2)gameMap.player.pos);
+        floorCeilComputeShader.SetVector2("rayDir0", rayDir0);
+        floorCeilComputeShader.SetVector2("rayDir1", rayDir1);
+        
+        GL.ActiveTexture(TextureUnit.Texture1);
+        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);      
+        GL.BindTexture(TextureTarget.Texture1D, computeTextures[0]);
+        GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, Size.Y, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
+        GL.BindImageTexture(0, computeTextures[0], 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
+        
+        GL.DispatchCompute(1, (int)Math.Ceiling(Size.Y / 2.0f), 1);
+        GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
+        
+
+        Vector2[] floor0s = new Vector2[Size.Y];
+        Vector2[] floorSteps = new Vector2[Size.Y];
+        
 
         //Size.Y / 2
         for (int y = 0; y < Math.Floor(Size.Y / 2.0f); y++)
