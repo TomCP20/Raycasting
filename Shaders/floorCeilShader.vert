@@ -15,9 +15,9 @@ void main()
 {
     vec4 pixel = imageLoad(imgInput, gl_InstanceID);
     float x = ((vertexX + 1)/2)*width;
-    float y = ((float(gl_InstanceID) / float(height)) * 2.0 - 1.0);
     floor = pixel.rg + x * pixel.ba;
-    if (y < 0)
+    float screeny = ((float(gl_InstanceID) / float(height)) * 2.0 - 1.0);
+    if (screeny < 0)
     {
         texNum = floorTexNum;
     }
@@ -26,5 +26,5 @@ void main()
         texNum = ceilTexNum;
     }
 
-    gl_Position = vec4(vertexX, y, 0.0, 1.0);
+    gl_Position = vec4(vertexX, screeny, 0.0, 1.0);
 }
