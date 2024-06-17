@@ -4,12 +4,12 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 layout(rgba32f, binding = 2) uniform image1D imgOutput;
 
 uniform int xoffset;
-uniform int width;
+uniform int screenwidth;
 uniform float spriteWidth;
 uniform float spriteScreenX;
 
 void main()
 {
-    float texX = float(((2.0 * (gl_GlobalInvocationID.x + xoffset) / width) - 1 - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth);
+    float texX = float(((2.0 * (gl_GlobalInvocationID.x + xoffset) / screenwidth) - 1 - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth);
     imageStore(imgOutput, int(gl_GlobalInvocationID.x), vec4(texX));
 }

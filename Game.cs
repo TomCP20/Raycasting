@@ -231,7 +231,7 @@ public class Game : GameWindow
             {
                 spriteComputeShader.Use();
                 spriteComputeShader.SetInt("xoffset", xstart);
-                spriteComputeShader.SetInt("width", Size.X);
+                spriteComputeShader.SetInt("screenwidth", Size.X);
                 spriteComputeShader.SetFloat("spriteWidth", (float)spriteWidth);
                 spriteComputeShader.SetFloat("spriteScreenX", (float)spriteScreenX);
 
