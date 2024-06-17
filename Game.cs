@@ -195,9 +195,9 @@ public class Game : GameWindow
         for (int i = 0; i < numSprites; i++)
         {
             spriteOrder[i] = i;
-            spriteDistance[i] = (gameMap.player.pos.X - gameMap.sprites[i].pos.X) * (gameMap.player.pos.X - gameMap.sprites[i].pos.X) + (gameMap.player.pos.Y - gameMap.sprites[i].pos.Y) * (gameMap.player.pos.Y - gameMap.sprites[i].pos.Y);
+            spriteDistance[i] = (gameMap.player.pos - gameMap.sprites[i].pos).LengthSquared;
         }
-        sortSprites(spriteOrder, spriteDistance, numSprites);
+        Array.Sort(spriteOrder, (x, y) => spriteDistance[y].CompareTo(spriteDistance[x]));
 
         //after sorting the sprites, do the projection and draw them
         for (int i = 0; i < numSprites; i++)
@@ -256,21 +256,6 @@ public class Game : GameWindow
             }
         }
 
-    }
-
-    private void sortSprites(int[] spriteOrder, double[] spriteDistance, int numSprites)
-    {
-        Tuple<double, int>[] sprites = new Tuple<double, int>[numSprites];
-        for (int i = 0; i < numSprites; i++)
-        {
-            sprites[i] = new Tuple<double, int>(spriteDistance[i], spriteOrder[i]);
-        }
-        Array.Sort(sprites, (x, y) => y.Item1.CompareTo(x.Item1));
-        // restore in reverse order to go from farthest to nearest
-        for (int i = 0; i < numSprites; i++)
-        {
-            (spriteDistance[i], spriteOrder[i]) = sprites[i];
-        }
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
