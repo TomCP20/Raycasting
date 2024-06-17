@@ -261,7 +261,7 @@ public class Game : GameWindow
                 List<float> texXs = new List<float>();
                 for (double x = Math.Max(-spriteWidth / 2 + spriteScreenX, -1); x < Math.Min(spriteWidth / 2 + spriteScreenX, 1); x += 2.0 / Size.X)
                 {
-                    if (x >= -1 && x <= 1 && transformY < ZBuffer[(int)(Size.X * (x + 1) / 2)])
+                    if (transformY < ZBuffer[(int)(Size.X * (x + 1) / 2)])
                     {
                         xs.Add((float)x);
                         double texX = (x - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth;
