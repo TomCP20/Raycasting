@@ -29,18 +29,18 @@ public class Game : GameWindow
 
     private readonly List<int> instanceVBOs = new List<int>();
 
-    private double[]? ZBuffer;
-
     private ComputeShader? wallComputeShader;
 
     private ComputeShader? floorCeilComputeShader;
+
+    private ComputeShader? spriteComputeShader;
 
     private Shader? wallShader;
     private Shader? floorCeilShader;
 
     private Shader? spriteShader;
 
-    private readonly string[] paths = 
+    private readonly string[] paths =
     {
         "Textures/eagle.png",
         "Textures/redbrick.png",
@@ -53,7 +53,6 @@ public class Game : GameWindow
         "Textures/barrel.png",
         "Textures/pillar.png",
         "Textures/greenlight.png",
-        
     };
 
     private Texture? textureArray;
@@ -85,7 +84,8 @@ public class Game : GameWindow
         spriteShader = new Shader("Shaders/spriteShader.vert", "Shaders/spriteShader.frag");
 
         wallComputeShader = new ComputeShader("Shaders/wallShader.comp");
-        floorCeilComputeShader = new ComputeShader("Shaders/floorCeilShader.comp");      
+        floorCeilComputeShader = new ComputeShader("Shaders/floorCeilShader.comp");
+        spriteComputeShader = new ComputeShader("Shaders/spriteShader.comp");
 
         textureArray = Texture.LoadFromFiles(paths);
         textureArray.Use(TextureUnit.Texture0);
@@ -122,23 +122,23 @@ public class Game : GameWindow
         // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
         Vector2 rayDir0 = (Vector2)(gameMap.player.dir - gameMap.player.plane);
         Vector2 rayDir1 = (Vector2)(gameMap.player.dir + gameMap.player.plane);
-        
+
         floorCeilComputeShader.SetInt("width", Size.X);
         floorCeilComputeShader.SetInt("height", Size.Y);
         floorCeilComputeShader.SetVector2("pos", (Vector2)gameMap.player.pos);
         floorCeilComputeShader.SetVector2("rayDir0", rayDir0);
         floorCeilComputeShader.SetVector2("rayDir1", rayDir1);
-        
+
         GL.ActiveTexture(TextureUnit.Texture1);
         GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);      
+        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
         GL.BindTexture(TextureTarget.Texture1D, computeTextures[0]);
         GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, Size.Y, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
         GL.BindImageTexture(0, computeTextures[0], 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
-        
+
         GL.DispatchCompute(1, (int)Math.Ceiling(Size.Y / 2.0f), 1);
         GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
-        
+
         floorCeilShader.Use();
         floorCeilShader.SetInt("width", Size.X);
         floorCeilShader.SetInt("height", Size.Y);
@@ -154,55 +154,28 @@ public class Game : GameWindow
         Debug.Assert(wallComputeShader != null);
         Debug.Assert(wallShader != null);
         wallComputeShader.Use();
-        for(int i = 0; i < gameMap.worldMap.GetLength(0); i++)
+        for (int i = 0; i < gameMap.worldMap.GetLength(0); i++)
         {
             for (int j = 0; j < gameMap.worldMap.GetLength(1); j++)
             {
                 GL.Uniform1(GL.GetUniformLocation(wallComputeShader.Handle, $"map[{i * gameMap.worldMap.GetLength(0) + j}]"), gameMap.worldMap[i, j]);
             }
-        } 
+        }
         wallComputeShader.SetInt("mapWidth", gameMap.worldMap.GetLength(0));
         wallComputeShader.SetVector2("pos", (Vector2)gameMap.player.pos);
         wallComputeShader.SetVector2("dir", (Vector2)gameMap.player.dir);
         wallComputeShader.SetVector2("plane", (Vector2)gameMap.player.plane);
-        
+
         GL.ActiveTexture(TextureUnit.Texture2);
         GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);      
+        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
         GL.BindTexture(TextureTarget.Texture1D, computeTextures[1]);
         GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, Size.X, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
         GL.BindImageTexture(1, computeTextures[1], 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
-        
+
         GL.DispatchCompute(Size.X, 1, 1);
         GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
 
-
-        float[] cameraXs = new float[Size.X];
-
-        ZBuffer = new double[Size.X];
-
-        for (int x = 0; x < Size.X; x++)
-        {
-            cameraXs[x] = (float)((x * 2.0 / Size.X) - 1.0); //x-coordinate in camera space
-
-            //calculate ray position and direction
-            Vector2d rayDir = gameMap.player.dir + (gameMap.player.plane * cameraXs[x]);
-
-            Ray ray = new Ray(gameMap.player.pos, rayDir);
-
-            //perform DDA
-            while (gameMap.worldMap[ray.mapPos.X, ray.mapPos.Y] == 0) //Check if ray has hit a wall
-            {
-                //jump to next map square, either in x-direction, or in y-direction
-                ray.stepRay();
-            }
-
-            //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
-            double perpWallDist = ray.getPerpWallDist();
-
-            ZBuffer[x] = perpWallDist;
-        }
-        
         wallShader.Use();
         wallShader.SetInt("width", Size.X);
 
@@ -213,7 +186,7 @@ public class Game : GameWindow
     private void drawSprites()
     {
         Debug.Assert(spriteShader != null);
-        Debug.Assert(ZBuffer != null);
+        Debug.Assert(spriteComputeShader != null);
         spriteShader.Use();
         int numSprites = gameMap.sprites.Length;
         int[] spriteOrder = new int[numSprites];
@@ -254,22 +227,31 @@ public class Game : GameWindow
             int xstart = Math.Max((int)(Size.X * (-spriteWidth / 2 + spriteScreenX + 1) / 2), 0);
             int xend = Math.Min((int)(Size.X * (spriteWidth / 2 + spriteScreenX + 1) / 2), Size.X);
 
-            if (transformY > 0 && xend-xstart > 0)
+            if (transformY > 0 && xend - xstart > 0)
             {
-                float[] texXs = new float[xend-xstart];
-                for (int x = xstart; x < xend; x ++)
-                {
-                    if (transformY < ZBuffer[x])
-                    {
-                        float texX = (float)(((2.0* x / Size.X) -1 - (-spriteWidth / 2 + spriteScreenX)) / spriteWidth);
-                        texXs[x - xstart] = texX;
-                    }
-                }
+                spriteComputeShader.Use();
+                spriteComputeShader.SetInt("xoffset", xstart);
+                spriteComputeShader.SetInt("width", Size.X);
+                spriteComputeShader.SetFloat("spriteWidth", (float)spriteWidth);
+                spriteComputeShader.SetFloat("spriteScreenX", (float)spriteScreenX);
+
+
+                GL.ActiveTexture(TextureUnit.Texture1);
+                GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
+                GL.BindTexture(TextureTarget.Texture1D, computeTextures[2]);
+                GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, Size.Y, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
+                GL.BindImageTexture(2, computeTextures[2], 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
+
+                GL.DispatchCompute(Size.X, 1, 1);
+                GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
+
+                spriteShader.Use();
                 spriteShader.SetFloat("spriteheight", (float)spriteHeight);
                 spriteShader.SetInt("screenwidth", Size.X);
                 spriteShader.SetInt("texNum", gameMap.sprites[spriteOrder[i]].texture);
                 spriteShader.SetInt("xoffset", xstart);
-                bufferInstanceDataFloat(texXs.ToArray(), 1);
+                spriteShader.SetFloat("transformY", (float)transformY);
                 GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, xend - xstart);
             }
         }
@@ -289,22 +271,6 @@ public class Game : GameWindow
         {
             (spriteDistance[i], spriteOrder[i]) = sprites[i];
         }
-    }
-
-    private void bufferInstanceDataFloat(float[] data, int attributeIndex)
-    {
-        int instanceVBO = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO);
-        GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * data.Length, data, BufferUsageHint.StaticDraw);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-
-        GL.EnableVertexAttribArray(attributeIndex);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceVBO); // this attribute comes from a different vertex buffer
-        GL.VertexAttribPointer(attributeIndex, 1, VertexAttribPointerType.Float, false, sizeof(float), IntPtr.Zero);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.VertexAttribDivisor(attributeIndex, 1); // tell OpenGL this is an instanced vertex attribute.
-
-        instanceVBOs.Add(instanceVBO);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)

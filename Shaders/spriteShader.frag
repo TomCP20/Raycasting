@@ -1,22 +1,30 @@
 #version 330 core
 
 in vec2 texCoord;
+in float z;
 
 uniform sampler2DArray texture0;
 uniform int texNum;
+uniform float transformY;
 
 out vec4 finalColor;
 
 void main()
 {
-
-    vec4 texColor = texture(texture0, vec3(texCoord.x , texCoord.y, texNum));
-    if (texColor == vec4(0, 0, 0, 1))
+    if(transformY < z)
     {
-        finalColor = vec4(0.0);
+        vec4 texColor = texture(texture0, vec3(texCoord.x, texCoord.y, texNum));
+        if(texColor == vec4(0, 0, 0, 1))
+        {
+            finalColor = vec4(0.0);
+        }
+        else
+        {
+            finalColor = texColor;
+        }
     }
     else
     {
-        finalColor = texColor;
+        finalColor = vec4(0);
     }
 }
