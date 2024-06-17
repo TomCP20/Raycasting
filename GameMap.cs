@@ -73,11 +73,11 @@ public class GameMap
 
     public void MovePlayer(double moveSpeed)
     {
+        Vector2d posDelta = player.dir * moveSpeed;
+        if (worldMap[(int)(player.pos.X + posDelta.X), (int)player.pos.Y] != 0) posDelta.X = 0;
+        if (worldMap[(int)player.pos.X, (int)(player.pos.Y + posDelta.Y)] != 0) posDelta.Y = 0;
         Player newplayer = player;
-        Vector2d newPos = player.pos;
-        if (worldMap[(int)(player.pos.X + (player.dir.X * moveSpeed)), (int)player.pos.Y] == 0) newPos.X += player.dir.X * moveSpeed;
-        if (worldMap[(int)player.pos.X, (int)(player.pos.Y + (player.dir.Y * moveSpeed))] == 0) newPos.Y += player.dir.Y * moveSpeed;
-        newplayer.pos = newPos;
+        newplayer.pos += posDelta;
         player = newplayer;
     }
 
