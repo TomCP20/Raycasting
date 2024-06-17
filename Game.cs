@@ -166,7 +166,7 @@ public class Game : GameWindow
         wallComputeShader.SetVector2("dir", (Vector2)gameMap.player.dir);
         wallComputeShader.SetVector2("plane", (Vector2)gameMap.player.plane);
         
-        GL.ActiveTexture(TextureUnit.Texture1);
+        GL.ActiveTexture(TextureUnit.Texture2);
         GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);      
         GL.BindTexture(TextureTarget.Texture1D, computeTextures[1]);
