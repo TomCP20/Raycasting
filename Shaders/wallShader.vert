@@ -15,7 +15,7 @@ void main()
     vec4 pixel = imageLoad(imgInput, gl_InstanceID);
     texCoord = vec2(pixel.g, (vertexY + 1.0) / 2.0);
     isDark = pixel.a;
-    texNum = pixel.b * 7;
+    texNum = pixel.b;
 
-    gl_Position = vec4((float(gl_InstanceID) / float(width)) * 2.0 - 1.0, vertexY / (pixel.r * 24), 0.0, 1.0);
+    gl_Position = vec4((float(gl_InstanceID) / float(width)) * 2.0 - 1.0, vertexY / pixel.r, 0.0, 1.0);
 }
