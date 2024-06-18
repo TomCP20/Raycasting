@@ -121,12 +121,7 @@ public class Game : GameWindow
         floorCeilComputeShader.SetVector2("rayDir0", rayDir0);
         floorCeilComputeShader.SetVector2("rayDir1", rayDir1);
 
-        GL.ActiveTexture(TextureUnit.Texture1);
-        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
-        GL.BindTexture(TextureTarget.Texture1D, computeTextures[0]);
-        GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, Size.Y, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
-        GL.BindImageTexture(0, computeTextures[0], 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
+        textureSetup(0, Size.Y);
 
         GL.DispatchCompute(1, (int)Math.Ceiling(Size.Y / 2.0f), 1);
         GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
@@ -140,6 +135,7 @@ public class Game : GameWindow
 
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.Y);
     }
+
 
     private void drawWalls()
     {
@@ -158,12 +154,7 @@ public class Game : GameWindow
         wallComputeShader.SetVector2("dir", (Vector2)gameMap.player.dir);
         wallComputeShader.SetVector2("plane", (Vector2)gameMap.player.plane);
 
-        GL.ActiveTexture(TextureUnit.Texture2);
-        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
-        GL.BindTexture(TextureTarget.Texture1D, computeTextures[1]);
-        GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, Size.X, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
-        GL.BindImageTexture(1, computeTextures[1], 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
+        textureSetup(1, Size.X);
 
         GL.DispatchCompute(Size.X, 1, 1);
         GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
@@ -228,12 +219,7 @@ public class Game : GameWindow
                 spriteComputeShader.SetFloat("spriteScreenX", (float)spriteScreenX);
 
 
-                GL.ActiveTexture(TextureUnit.Texture1);
-                GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-                GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
-                GL.BindTexture(TextureTarget.Texture1D, computeTextures[2]);
-                GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, Size.Y, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
-                GL.BindImageTexture(2, computeTextures[2], 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
+                textureSetup(2, Size.Y);
 
                 GL.DispatchCompute(Size.X, 1, 1);
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
@@ -310,5 +296,15 @@ public class Game : GameWindow
         GL.DeleteTextures(3, computeTextures);
 
         base.OnUnload();
+    }
+
+    private void textureSetup(int index, int size)
+    {
+        GL.ActiveTexture(TextureUnit.Texture1);
+        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
+        GL.BindTexture(TextureTarget.Texture1D, computeTextures[index]);
+        GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, size, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
+        GL.BindImageTexture(index, computeTextures[index], 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
     }
 }
