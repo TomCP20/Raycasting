@@ -27,8 +27,6 @@ public class Game : GameWindow
 
     private int vertexArrayObject;
 
-    private readonly List<int> instanceVBOs = new List<int>();
-
     private ComputeShader? wallComputeShader;
 
     private ComputeShader? floorCeilComputeShader;
@@ -104,12 +102,6 @@ public class Game : GameWindow
         drawFloorCeil();
         drawWalls();
         drawSprites();
-
-        foreach (int instanceVBO in instanceVBOs)
-        {
-            GL.DeleteBuffer(instanceVBO);
-        }
-        instanceVBOs.Clear();
 
         SwapBuffers();
     }
