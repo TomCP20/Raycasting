@@ -300,7 +300,6 @@ public class Game : GameWindow
 
     private void textureSetup(int index, int size)
     {
-        GL.ActiveTexture(TextureUnit.Texture1);
         GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
         GL.BindTexture(TextureTarget.Texture1D, computeTextures[index]);
