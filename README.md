@@ -24,3 +24,17 @@ To build this project use the command `dotnet build` in the base of folder the p
 [Learn OpenGL](https://learnopengl.com/)
 
 [PyOpenGL RayCasting](https://www.youtube.com/watch?v=p61mCoASwZ0)
+
+## Screenshots
+
+![1](/Screenshots/example%201.png)
+
+![2](/Screenshots/example%202.png)
+
+![3](/Screenshots/example%203.png)
+
+![4](/Screenshots/example%204.png)
+
+![5](/Screenshots/example%205.png)
+
+![6](/Screenshots/example%206.png)
