@@ -89,6 +89,13 @@ public class Game : GameWindow
         textureArray.Use(TextureUnit.Texture0);
 
         GL.GenTextures(3, computeTextures);
+
+        int maptex = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2D, maptex);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R32i, gameMap.worldMap.GetLength(0), gameMap.worldMap.GetLength(1), 0, PixelFormat.RedInteger, PixelType.Int, gameMap.worldMap);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
+        GL.BindImageTexture(3, maptex, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.R32i);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
@@ -142,14 +149,6 @@ public class Game : GameWindow
         Debug.Assert(wallComputeShader != null);
         Debug.Assert(wallShader != null);
         wallComputeShader.Use();
-        for (int i = 0; i < gameMap.worldMap.GetLength(0); i++)
-        {
-            for (int j = 0; j < gameMap.worldMap.GetLength(1); j++)
-            {
-                GL.Uniform1(GL.GetUniformLocation(wallComputeShader.Handle, $"map[{i * gameMap.worldMap.GetLength(0) + j}]"), gameMap.worldMap[i, j]);
-            }
-        }
-        wallComputeShader.SetInt("mapWidth", gameMap.worldMap.GetLength(0));
         wallComputeShader.SetVector2("pos", (Vector2)gameMap.player.pos);
         wallComputeShader.SetVector2("dir", (Vector2)gameMap.player.dir);
         wallComputeShader.SetVector2("plane", (Vector2)gameMap.player.plane);

@@ -2,9 +2,7 @@
 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 layout(rgba32f, binding = 1) uniform image1D imgOutput;
-
-uniform int mapWidth;
-uniform int map[576];
+layout(r32i, binding = 3) uniform iimage2D imgMap;
 
 uniform vec2 pos;
 uniform vec2 dir;
@@ -65,7 +63,7 @@ void main()
       side = 1;
     }
     //Check if ray has hit a wall
-    if(map[mapPos.x * mapWidth + mapPos.y] > 0)
+    if(imageLoad(imgMap, mapPos.yx).r > 0)
       hit = 1;
   }
 
@@ -74,7 +72,7 @@ void main()
   else
     perpWallDist = (sideDist.y - deltaDist.y);
 
-  int texNum = map[mapPos.x * mapWidth + mapPos.y] - 1;
+  int texNum = imageLoad(imgMap, mapPos.yx).r - 1;
 
   //calculate value of wallX
   float texX;
