@@ -50,7 +50,7 @@ public class Game : GameWindow
     private int framebuffer;
     private int textureColorbuffer;
 
-    private int rbo;
+    private int rbo = 1;
 
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
 
