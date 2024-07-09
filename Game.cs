@@ -24,6 +24,8 @@ public class Game : GameWindow
 
     private Shader? spriteShader;
 
+    private Shader? screenShader;
+
     private readonly string[] paths =
     {
         "Textures/eagle.png",
@@ -42,6 +44,11 @@ public class Game : GameWindow
     private Texture? textureArray;
 
     private readonly int[] computeTextures = new int[3];
+
+    private int framebuffer;
+    private int textureColorbuffer;
+    private int rbo;
+
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
 
     protected override void OnLoad()
@@ -63,6 +70,11 @@ public class Game : GameWindow
         floorCeilComputeShader = new ComputeShader("Shaders/floorCeilShader.comp");
         spriteComputeShader = new ComputeShader("Shaders/spriteShader.comp");
 
+        screenShader = new Shader("Shaders/screenShader.vert", "Shaders/screenShader.frag");
+
+        screenShader.Use();
+        screenShader.SetInt("screenTexture", 0);
+
         textureArray = Texture.LoadFromFiles(paths);
         textureArray.Use(TextureUnit.Texture0);
 
@@ -74,6 +86,26 @@ public class Game : GameWindow
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
         GL.BindImageTexture(3, maptex, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.R32i);
+
+        framebuffer = GL.GenFramebuffer();
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
+
+        textureColorbuffer = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2D, textureColorbuffer);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, Size.X, Size.Y, 0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, textureColorbuffer, 0);
+        // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+        GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
+        GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, Size.X, Size.Y); // use a single renderbuffer object for both a depth AND stencil buffer.
+        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, rbo); // now actually attach it
+        // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+        if (GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
+            Console.WriteLine("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
