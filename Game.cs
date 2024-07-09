@@ -13,6 +13,8 @@ public class Game : GameWindow
 
     private LineMesh? line;
 
+    private QuadMesh? quad;
+
     private ComputeShader? wallComputeShader;
 
     private ComputeShader? floorCeilComputeShader;
@@ -47,7 +49,6 @@ public class Game : GameWindow
 
     private int framebuffer;
     private int textureColorbuffer;
-    private int rbo;
 
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
 
@@ -55,12 +56,11 @@ public class Game : GameWindow
     {
         base.OnLoad();
 
-        GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.Enable(EnableCap.Blend);
 
         line = new LineMesh();
+        quad = new QuadMesh();
 
         wallShader = new Shader("Shaders/wallShader.vert", "Shaders/wallShader.frag");
         floorCeilShader = new Shader("Shaders/floorCeilShader.vert", "Shaders/floorCeilShader.frag");
@@ -75,18 +75,6 @@ public class Game : GameWindow
         screenShader.Use();
         screenShader.SetInt("screenTexture", 0);
 
-        textureArray = Texture.LoadFromFiles(paths);
-        textureArray.Use(TextureUnit.Texture0);
-
-        GL.GenTextures(3, computeTextures);
-
-        int maptex = GL.GenTexture();
-        GL.BindTexture(TextureTarget.Texture2D, maptex);
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R32i, gameMap.worldMap.GetLength(0), gameMap.worldMap.GetLength(1), 0, PixelFormat.RedInteger, PixelType.Int, gameMap.worldMap);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
-        GL.BindImageTexture(3, maptex, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.R32i);
-
         framebuffer = GL.GenFramebuffer();
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
 
@@ -98,14 +86,28 @@ public class Game : GameWindow
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, textureColorbuffer, 0);
-        // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+
+        int rbo = 0;
+        //rbo = GL.GenRenderbuffer();
+        //TODO - fix this
         GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
         GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, Size.X, Size.Y); // use a single renderbuffer object for both a depth AND stencil buffer.
         GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, rbo); // now actually attach it
-        // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
         if (GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
             Console.WriteLine("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+        textureArray = Texture.LoadFromFiles(paths);
+        textureArray.Use(TextureUnit.Texture0);
+
+        GL.GenTextures(3, computeTextures);
+
+        int maptex = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2D, maptex);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R32i, gameMap.worldMap.GetLength(0), gameMap.worldMap.GetLength(1), 0, PixelFormat.RedInteger, PixelType.Int, gameMap.worldMap);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
+        GL.BindImageTexture(3, maptex, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.R32i);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
@@ -113,16 +115,32 @@ public class Game : GameWindow
         base.OnRenderFrame(args);
         Debug.Assert(textureArray != null);
         Debug.Assert(line != null);
+        Debug.Assert(quad != null);
+        Debug.Assert(screenShader != null);
 
-        GL.Clear(ClearBufferMask.ColorBufferBit);
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
 
-        
+        GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+        GL.Enable(EnableCap.DepthTest);
+
         textureArray.Use(TextureUnit.Texture0);
 
         line.bind();
         drawFloorCeil();
         drawWalls();
         drawSprites();
+
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        GL.Disable(EnableCap.DepthTest);
+        GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        GL.Clear(ClearBufferMask.ColorBufferBit);
+
+        screenShader.Use();
+        quad.bind();
+        GL.BindTexture(TextureTarget.Texture2D, textureColorbuffer);	// use the color attachment texture as the texture of the quad plane
+        GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
 
         SwapBuffers();
     }
