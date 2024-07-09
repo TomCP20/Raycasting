@@ -79,11 +79,15 @@ public class Game : GameWindow
     protected override void OnRenderFrame(FrameEventArgs args)
     {
         base.OnRenderFrame(args);
+        Debug.Assert(textureArray != null);
+        Debug.Assert(line != null);
+
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        Debug.Assert(textureArray != null);
+        
         textureArray.Use(TextureUnit.Texture0);
 
+        line.bind();
         drawFloorCeil();
         drawWalls();
         drawSprites();
