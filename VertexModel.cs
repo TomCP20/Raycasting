@@ -10,9 +10,9 @@ public class VertexModel
 
     private readonly int vertexArrayObject;
 
-    public VertexModel(float[] vertices, int vertexCount)
+    public VertexModel(float[] vertices, int[] strides)
     {
-        this.vertexCount = vertexCount;
+        vertexCount = vertices.Length/strides.Sum();
         vertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(vertexArrayObject);
 
@@ -20,8 +20,14 @@ public class VertexModel
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
-        GL.EnableVertexAttribArray(0);
-        GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, sizeof(float), 0);
+        int offset = 0;
+        for (int i = 0; i < strides.Length; i++)
+        {
+            GL.EnableVertexAttribArray(i);
+            GL.VertexAttribPointer(0, strides[i], VertexAttribPointerType.Float, false, sizeof(float), offset*sizeof(float));
+            offset += strides[i];
+        }
+        
 
     }
 
