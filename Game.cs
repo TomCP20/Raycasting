@@ -11,7 +11,7 @@ public class Game : GameWindow
 {
     private readonly GameMap gameMap = new GameMap();
 
-    private VertexModel? line;
+    private LineMesh? line;
 
     private ComputeShader? wallComputeShader;
 
@@ -53,7 +53,7 @@ public class Game : GameWindow
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.Enable(EnableCap.Blend);
 
-        line = new VertexModel([ 1f, -1f], [1]);
+        line = new LineMesh();
 
         wallShader = new Shader("Shaders/wallShader.vert", "Shaders/wallShader.frag");
         floorCeilShader = new Shader("Shaders/floorCeilShader.vert", "Shaders/floorCeilShader.frag");
