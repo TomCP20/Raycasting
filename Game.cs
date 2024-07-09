@@ -50,6 +50,8 @@ public class Game : GameWindow
     private int framebuffer;
     private int textureColorbuffer;
 
+    private int rbo;
+
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
 
     protected override void OnLoad()
@@ -87,11 +89,11 @@ public class Game : GameWindow
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, textureColorbuffer, 0);
 
-        int rbo = 0;
         //rbo = GL.GenRenderbuffer();
         //TODO - fix this
         GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
         GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, Size.X, Size.Y); // use a single renderbuffer object for both a depth AND stencil buffer.
+        GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
         GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, rbo); // now actually attach it
         if (GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
             Console.WriteLine("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
@@ -311,22 +313,26 @@ public class Game : GameWindow
     {
         GL.Viewport(0, 0, Size.X, Size.Y);
 
+        GL.BindTexture(TextureTarget.Texture2D, textureColorbuffer);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, Size.X, Size.Y, 0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
+        GL.BindTexture(TextureTarget.Texture2D, 0);
+
         base.OnResize(e);
     }
 
     protected override void OnUnload()
     {
         Debug.Assert(line != null);
+        Debug.Assert(quad != null);
         Debug.Assert(wallShader != null);
 
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.BindVertexArray(0);
-        GL.UseProgram(0);
-
+        quad.delete();
         line.delete();
 
-        GL.DeleteProgram(wallShader.Handle);
+        GL.DeleteRenderbuffer(rbo);
+        GL.DeleteFramebuffer(framebuffer);
 
+        GL.DeleteProgram(wallShader.Handle);
         GL.DeleteTextures(3, computeTextures);
 
         base.OnUnload();
