@@ -244,7 +244,7 @@ public class Game : GameWindow
             double spriteWidth = Math.Abs(1 / transformY);
 
             int xstart = Math.Max((int)(Size.X * (-spriteWidth / 2.0 + spriteScreenX + 1.0) / 2.0), 0);
-            int xend = Math.Min((int)(Size.X * (spriteWidth / 2.0 + spriteScreenX + 1.0) / 2.0), (Size.X - 1));
+            int xend = Math.Min((int)(Size.X * (spriteWidth / 2.0 + spriteScreenX + 1.0) / 2.0), Size.X - 1);
 
             if (transformY > 0 && xend - xstart > 0)
             {
