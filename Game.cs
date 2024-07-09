@@ -11,19 +11,7 @@ public class Game : GameWindow
 {
     private readonly GameMap gameMap = new GameMap();
 
-    private readonly float[] vertices =
-    {
-        //pos
-         1f,
-        -1f,
-    };
-
-
-    private const int vertexCount = 2;
-
-    private int vertexBufferObject;
-
-    private int vertexArrayObject;
+    private VertexModel? line;
 
     private ComputeShader? wallComputeShader;
 
@@ -65,15 +53,7 @@ public class Game : GameWindow
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.Enable(EnableCap.Blend);
 
-        vertexArrayObject = GL.GenVertexArray();
-        GL.BindVertexArray(vertexArrayObject);
-
-        vertexBufferObject = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
-        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
-
-        GL.EnableVertexAttribArray(0);
-        GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, sizeof(float), 0);
+        line = new VertexModel([ 1f, -1f], 2);
 
         wallShader = new Shader("Shaders/wallShader.vert", "Shaders/wallShader.frag");
         floorCeilShader = new Shader("Shaders/floorCeilShader.vert", "Shaders/floorCeilShader.frag");
@@ -113,6 +93,7 @@ public class Game : GameWindow
 
     private void drawFloorCeil()
     {
+        Debug.Assert(line != null);
         Debug.Assert(floorCeilShader != null);
         Debug.Assert(floorCeilComputeShader != null);
 
@@ -138,12 +119,13 @@ public class Game : GameWindow
         floorCeilShader.SetInt("ceilTexNum", 6);
 
 
-        GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.Y);
+        GL.DrawArraysInstanced(PrimitiveType.Lines, 0, line.vertexCount, Size.Y);
     }
 
 
     private void drawWalls()
     {
+        Debug.Assert(line != null);
         Debug.Assert(wallComputeShader != null);
         Debug.Assert(wallShader != null);
         wallComputeShader.Use();
@@ -160,11 +142,12 @@ public class Game : GameWindow
         wallShader.SetInt("width", Size.X);
 
         //draw the pixels of the stripe as a vertical line
-        GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, Size.X);
+        GL.DrawArraysInstanced(PrimitiveType.Lines, 0, line.vertexCount, Size.X);
     }
 
     private void drawSprites()
     {
+        Debug.Assert(line != null);
         Debug.Assert(spriteShader != null);
         Debug.Assert(spriteComputeShader != null);
         spriteShader.Use();
@@ -227,7 +210,7 @@ public class Game : GameWindow
                 spriteShader.SetInt("texNum", gameMap.sprites[spriteOrder[i]].texture);
                 spriteShader.SetInt("xoffset", xstart);
                 spriteShader.SetFloat("transformY", (float)transformY);
-                GL.DrawArraysInstanced(PrimitiveType.Lines, 0, vertexCount, xend - xstart);
+                GL.DrawArraysInstanced(PrimitiveType.Lines, 0, line.vertexCount, xend - xstart);
             }
         }
 
@@ -279,14 +262,14 @@ public class Game : GameWindow
 
     protected override void OnUnload()
     {
+        Debug.Assert(line != null);
         Debug.Assert(wallShader != null);
 
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
         GL.UseProgram(0);
 
-        GL.DeleteBuffer(vertexBufferObject);
-        GL.DeleteVertexArray(vertexArrayObject);
+        line.delete();
 
         GL.DeleteProgram(wallShader.Handle);
 
