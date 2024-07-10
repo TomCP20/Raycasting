@@ -50,7 +50,7 @@ public class Game : GameWindow
     private int framebuffer;
     private int textureColorbuffer;
 
-    private int rbo = 1;
+    private int rbo;
 
     public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings) { }
 
@@ -58,8 +58,10 @@ public class Game : GameWindow
     {
         base.OnLoad();
 
+        GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.Enable(EnableCap.Blend);
+        GL.Disable(EnableCap.DepthTest);
 
         line = new LineMesh();
         quad = new QuadMesh();
@@ -89,8 +91,7 @@ public class Game : GameWindow
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, textureColorbuffer, 0);
 
-        //rbo = GL.GenRenderbuffer();
-        //TODO - fix this
+        rbo = GL.GenRenderbuffer();
         GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
         GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, Size.X, Size.Y); // use a single renderbuffer object for both a depth AND stencil buffer.
         GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
@@ -128,10 +129,8 @@ public class Game : GameWindow
 
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
 
-        GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-        GL.Enable(EnableCap.DepthTest);
 
         textureArray.Use(TextureUnit.Texture0);
 
@@ -141,8 +140,6 @@ public class Game : GameWindow
         drawSprites();
 
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-        GL.Disable(EnableCap.DepthTest);
-        GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
         screenShader.Use();
