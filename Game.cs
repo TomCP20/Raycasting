@@ -163,6 +163,7 @@ public class Game : GameWindow
         Vector2 rayDir0 = (Vector2)(gameMap.player.dir - gameMap.player.plane);
         Vector2 rayDir1 = (Vector2)(gameMap.player.dir + gameMap.player.plane);
 
+        floorCeilComputeShader.Use();
         floorCeilComputeShader.SetInt("width", Size.X);
         floorCeilComputeShader.SetInt("height", Size.Y);
         floorCeilComputeShader.SetVector2("pos", (Vector2)gameMap.player.pos);
@@ -190,6 +191,7 @@ public class Game : GameWindow
         Debug.Assert(line != null);
         Debug.Assert(wallComputeShader != null);
         Debug.Assert(wallShader != null);
+        
         wallComputeShader.Use();
         wallComputeShader.SetVector2("pos", (Vector2)gameMap.player.pos);
         wallComputeShader.SetVector2("dir", (Vector2)gameMap.player.dir);
