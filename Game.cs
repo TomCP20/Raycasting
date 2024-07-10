@@ -103,12 +103,18 @@ public class Game : GameWindow
         textureArray.Use(TextureUnit.Texture0);
 
         GL.GenTextures(3, computeTextures);
+        foreach (int tex in computeTextures)
+        {
+            GL.BindTexture(TextureTarget.Texture1D, tex);
+            GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);  
+        }
 
         int maptex = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, maptex);
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R32i, gameMap.worldMap.GetLength(0), gameMap.worldMap.GetLength(1), 0, PixelFormat.RedInteger, PixelType.Int, gameMap.worldMap);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R32i, gameMap.worldMap.GetLength(0), gameMap.worldMap.GetLength(1), 0, PixelFormat.RedInteger, PixelType.Int, gameMap.worldMap);
         GL.BindImageTexture(3, maptex, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.R32i);
     }
 
@@ -340,8 +346,6 @@ public class Game : GameWindow
 
     private void textureSetup(int index, int size)
     {
-        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture1D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
         GL.BindTexture(TextureTarget.Texture1D, computeTextures[index]);
         GL.TexImage1D(TextureTarget.Texture1D, 0, PixelInternalFormat.Rgba32f, size, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
         GL.BindImageTexture(index, computeTextures[index], 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32f);
