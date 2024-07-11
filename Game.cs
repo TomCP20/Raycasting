@@ -28,6 +28,8 @@ public class Game : GameWindow
 
     private Shader? screenShader;
 
+    private int screenShaderMode = 0;
+
     private readonly string[] paths =
     {
         "Textures/eagle.png",
@@ -79,6 +81,7 @@ public class Game : GameWindow
         screenShader = new Shader("Shaders/screenShader.vert", "Shaders/screenShader.frag");
 
         screenShader.SetInt("screenTexture", 0);
+        screenShader.SetInt("mode", screenShaderMode);
 
         framebuffer = GL.GenFramebuffer();
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
@@ -267,6 +270,7 @@ public class Game : GameWindow
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
         base.OnUpdateFrame(args);
+        Debug.Assert(screenShader != null);
 
         var input = KeyboardState;
 
@@ -310,6 +314,13 @@ public class Game : GameWindow
             {
                 WindowState = WindowState.Fullscreen;
             }
+        }
+
+        if (input.IsKeyPressed(Keys.O))
+        {
+            screenShaderMode++;
+            screenShaderMode %= 3;
+            screenShader.SetInt("mode", screenShaderMode);
         }
     }
 
