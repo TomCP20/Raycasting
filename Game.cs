@@ -318,7 +318,7 @@ public class Game : GameWindow
 
         if (input.IsKeyPressed(Keys.O))
         {
-            screenShaderMode = (screenShaderMode + 1) % 5;
+            screenShaderMode = (screenShaderMode + 1) % 6;
             screenShader.SetInt("mode", screenShaderMode);
         }
     }

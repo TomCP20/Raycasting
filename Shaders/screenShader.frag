@@ -66,4 +66,22 @@ void main()
 
         FragColor = vec4(col, 1.0);
     }
+    else if (mode == 5)
+    {
+        float kernel[9] = float[](
+            1,  1, 1,
+            1, -8, 1,
+            1,  1, 1  
+        );
+
+        vec3 sampleTex[9];
+        for(int i = 0; i < 9; i++)
+        {
+            sampleTex[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]));
+        }
+        vec3 col = vec3(0.0);
+        for(int i = 0; i < 9; i++) col += sampleTex[i] * kernel[i];
+
+        FragColor = vec4(col, 1.0);
+    }
 }
