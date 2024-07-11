@@ -322,14 +322,9 @@ public class Game : GameWindow
         Debug.Assert(spriteShader != null);
         Debug.Assert(spriteComputeShader != null);
 
-        floorCeilComputeShader.SetInt("width", Size.X);
-        floorCeilComputeShader.SetInt("height", Size.Y);
-
-        floorCeilShader.SetInt("width", Size.X);
-        floorCeilShader.SetInt("height", Size.Y);
-
+        floorCeilComputeShader.SetVector2i("screenSize", Size);
+        floorCeilShader.SetVector2i("screenSize", Size);
         wallShader.SetInt("width", Size.X);
-
         spriteShader.SetInt("screenwidth", Size.X);
         spriteComputeShader.SetInt("screenwidth", Size.X);
     }

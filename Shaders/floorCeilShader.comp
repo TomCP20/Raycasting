@@ -3,8 +3,7 @@
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 layout(rgba32f, binding = 0) uniform image1D imgOutput;
 
-uniform int width;
-uniform int height;
+uniform ivec2 screenSize;
 uniform vec2 rayDir0;
 uniform vec2 rayDir1;
 uniform vec2 pos;
@@ -13,10 +12,10 @@ uniform vec2 pos;
 void main()
 {
     // Current y position compared to the center of the screen (the horizon)
-    int p = -(int(gl_GlobalInvocationID.y) - height / 2);
+    int p = -(int(gl_GlobalInvocationID.y) - screenSize.y / 2);
 
     // Vertical position of the camera.
-    float posZ = float(0.5 * height);
+    float posZ = float(0.5 * screenSize.y);
 
     // Horizontal distance from the camera to the floor for the current row.
     // 0.5 is the z position exactly in the middle between floor and ceiling.
@@ -25,7 +24,7 @@ void main()
     // calculate the real world step vector we have to add for each x (parallel to camera plane)
     // adding step by step avoids multiplications with a weight in the inner loop
 
-    vec2 floorStep = rowDistance * (rayDir1 - rayDir0) / width;
+    vec2 floorStep = rowDistance * (rayDir1 - rayDir0) / screenSize.x;
 
     // real world coordinates of the leftmost column. This will be updated as we step to the right.
     vec2 floor0 = vec2(pos + rowDistance * rayDir0);
@@ -35,5 +34,5 @@ void main()
     //floorStep vec2    unknown range
     //floor0    vec2    unknown range
     imageStore(imgOutput, int(gl_GlobalInvocationID.y), vec4(floor0, floorStep));
-    imageStore(imgOutput, int(height - gl_GlobalInvocationID.y), vec4(floor0, floorStep));
+    imageStore(imgOutput, int(screenSize.y - gl_GlobalInvocationID.y), vec4(floor0, floorStep));
 }
