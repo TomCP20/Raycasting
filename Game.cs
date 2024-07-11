@@ -74,6 +74,8 @@ public class Game : GameWindow
         floorCeilComputeShader = new ComputeShader("Shaders/floorCeilShader.comp");
         spriteComputeShader = new ComputeShader("Shaders/spriteShader.comp");
 
+        setShaderScreenSize();
+
         screenShader = new Shader("Shaders/screenShader.vert", "Shaders/screenShader.frag");
 
         screenShader.SetInt("screenTexture", 0);
@@ -159,8 +161,6 @@ public class Game : GameWindow
         Vector2 rayDir0 = (Vector2)(gameMap.player.dir - gameMap.player.plane);
         Vector2 rayDir1 = (Vector2)(gameMap.player.dir + gameMap.player.plane);
 
-        floorCeilComputeShader.SetInt("width", Size.X);
-        floorCeilComputeShader.SetInt("height", Size.Y);
         floorCeilComputeShader.SetVector2("pos", (Vector2)gameMap.player.pos);
         floorCeilComputeShader.SetVector2("rayDir0", rayDir0);
         floorCeilComputeShader.SetVector2("rayDir1", rayDir1);
@@ -170,8 +170,6 @@ public class Game : GameWindow
         GL.DispatchCompute(1, (int)Math.Ceiling(Size.Y / 2.0f), 1);
         GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
 
-        floorCeilShader.SetInt("width", Size.X);
-        floorCeilShader.SetInt("height", Size.Y);
         floorCeilShader.SetInt("floorTexNum", 3);
         floorCeilShader.SetInt("ceilTexNum", 6);
 
@@ -196,7 +194,6 @@ public class Game : GameWindow
         GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
 
         wallShader.Use();
-        wallShader.SetInt("width", Size.X);
 
         //draw the pixels of the stripe as a vertical line
         GL.DrawArraysInstanced(PrimitiveType.Lines, 0, line.vertexCount, Size.X);
@@ -249,10 +246,8 @@ public class Game : GameWindow
             if (transformY > 0 && xend - xstart > 0)
             {
                 spriteComputeShader.SetInt("xoffset", xstart);
-                spriteComputeShader.SetInt("screenwidth", Size.X);
                 spriteComputeShader.SetFloat("spriteWidth", (float)spriteWidth);
                 spriteComputeShader.SetFloat("spriteScreenX", (float)spriteScreenX);
-
 
                 textureSetup(2, Size.Y);
 
@@ -260,7 +255,6 @@ public class Game : GameWindow
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
 
                 spriteShader.SetFloat("spriteheight", (float)spriteHeight);
-                spriteShader.SetInt("screenwidth", Size.X);
                 spriteShader.SetInt("texNum", gameMap.sprites[spriteOrder[i]].texture);
                 spriteShader.SetInt("xoffset", xstart);
                 spriteShader.SetFloat("transformY", (float)transformY);
@@ -315,7 +309,29 @@ public class Game : GameWindow
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, Size.X, Size.Y, 0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
+        setShaderScreenSize();
+
         base.OnResize(e);
+    }
+
+    private void setShaderScreenSize()
+    {
+        Debug.Assert(floorCeilComputeShader != null);
+        Debug.Assert(floorCeilShader != null);
+        Debug.Assert(wallShader != null);
+        Debug.Assert(spriteShader != null);
+        Debug.Assert(spriteComputeShader != null);
+
+        floorCeilComputeShader.SetInt("width", Size.X);
+        floorCeilComputeShader.SetInt("height", Size.Y);
+
+        floorCeilShader.SetInt("width", Size.X);
+        floorCeilShader.SetInt("height", Size.Y);
+
+        wallShader.SetInt("width", Size.X);
+
+        spriteShader.SetInt("screenwidth", Size.X);
+        spriteComputeShader.SetInt("screenwidth", Size.X);
     }
 
     protected override void OnUnload()
