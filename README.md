@@ -42,7 +42,12 @@ A kernel is used to blur the image.
 
 ### Edge-Detection
 
-A kernel is used to detect th edges of the image.
+A kernel is used to detect the edges of the image.
+
+### Embossing
+
+A kernel is used to emboss the image.
+
 
 ## References
 
