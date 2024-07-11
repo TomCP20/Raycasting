@@ -76,12 +76,12 @@ public class Game : GameWindow
         floorCeilComputeShader = new ComputeShader("Shaders/floorCeilShader.comp");
         spriteComputeShader = new ComputeShader("Shaders/spriteShader.comp");
 
-        setShaderScreenSize();
-
         screenShader = new Shader("Shaders/screenShader.vert", "Shaders/screenShader.frag");
 
         screenShader.SetInt("screenTexture", 0);
         screenShader.SetInt("mode", screenShaderMode);
+
+        setShaderScreenSize();
 
         framebuffer = GL.GenFramebuffer();
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
@@ -319,7 +319,7 @@ public class Game : GameWindow
         if (input.IsKeyPressed(Keys.O))
         {
             screenShaderMode++;
-            screenShaderMode %= 3;
+            screenShaderMode %= 4;
             screenShader.SetInt("mode", screenShaderMode);
         }
     }
@@ -345,12 +345,14 @@ public class Game : GameWindow
         Debug.Assert(wallShader != null);
         Debug.Assert(spriteShader != null);
         Debug.Assert(spriteComputeShader != null);
+        Debug.Assert(screenShader != null);
 
         floorCeilComputeShader.SetVector2i("screenSize", Size);
         floorCeilShader.SetVector2i("screenSize", Size);
         wallShader.SetInt("width", Size.X);
         spriteShader.SetInt("screenwidth", Size.X);
         spriteComputeShader.SetInt("screenwidth", Size.X);
+        screenShader.SetVector2i("screenSize", Size);
     }
 
     protected override void OnUnload()
