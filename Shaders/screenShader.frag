@@ -7,7 +7,7 @@ uniform sampler2D screenTexture;
 uniform int mode;
 uniform ivec2 screenSize;
 
-void main()
+vec3 convolution(float[9] kernel)
 {
     vec2 offsets[9] = vec2[](
         vec2(-1.0/screenSize.x, 1.0/screenSize.y),  // top-left
@@ -20,6 +20,18 @@ void main()
         vec2(0.0,               -1.0/screenSize.y), // bottom-center
         vec2(1.0/screenSize.x,  -1.0/screenSize.y)  // bottom-right    
     );
+    vec3 sampleTex[9];
+    for(int i = 0; i < 9; i++)
+    {
+        sampleTex[i] = vec3(texture(screenTexture, TexCoords + offsets[i]));
+    }
+    vec3 col = vec3(0.0);
+    for(int i = 0; i < 9; i++) col += sampleTex[i] * kernel[i];
+    return col;
+}
+
+void main()
+{
     vec3 col = texture(screenTexture, TexCoords).rgb;
     if (mode == 0)
     {
@@ -36,17 +48,12 @@ void main()
     }
     else if (mode == 3)
     {
-        float kernel[9] = float[](-1, -1, -1, -1, 9, -1, -1, -1, -1);
+        float kernel[9] = float[](
+            -1, -1, -1,
+            -1,  9, -1,
+            -1, -1, -1);
 
-        vec3 sampleTex[9];
-        for(int i = 0; i < 9; i++)
-        {
-            sampleTex[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]));
-        }
-        vec3 col = vec3(0.0);
-        for(int i = 0; i < 9; i++) col += sampleTex[i] * kernel[i];
-
-        FragColor = vec4(col, 1.0);
+        FragColor = vec4(convolution(kernel), 1.0);
     }
     else if (mode == 4)
     {
@@ -56,15 +63,7 @@ void main()
             1.0 / 16, 2.0 / 16, 1.0 / 16  
         );
 
-        vec3 sampleTex[9];
-        for(int i = 0; i < 9; i++)
-        {
-            sampleTex[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]));
-        }
-        vec3 col = vec3(0.0);
-        for(int i = 0; i < 9; i++) col += sampleTex[i] * kernel[i];
-
-        FragColor = vec4(col, 1.0);
+        FragColor = vec4(convolution(kernel), 1.0);
     }
     else if (mode == 5)
     {
@@ -74,31 +73,15 @@ void main()
             1,  1, 1  
         );
 
-        vec3 sampleTex[9];
-        for(int i = 0; i < 9; i++)
-        {
-            sampleTex[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]));
-        }
-        vec3 col = vec3(0.0);
-        for(int i = 0; i < 9; i++) col += sampleTex[i] * kernel[i];
-
-        FragColor = vec4(col, 1.0);
+        FragColor = vec4(convolution(kernel), 1.0);
     }
     else if (mode == 6)
     {
         float kernel[9] = float[](
             -2, -1, 0,
-            -1, 1, 1,
-            0, 1, 2);
-
-        vec3 sampleTex[9];
-        for(int i = 0; i < 9; i++)
-        {
-            sampleTex[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]));
-        }
-        vec3 col = vec3(0.0);
-        for(int i = 0; i < 9; i++) col += sampleTex[i] * kernel[i];
-
-        FragColor = vec4(col, 1.0);
+            -1,  1, 1,
+             0,  1, 2
+        );
+        FragColor = vec4(convolution(kernel), 1.0);
     }
 }
