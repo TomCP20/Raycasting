@@ -12,8 +12,10 @@ To build this project use the command `dotnet build` in the base of folder the p
 
 * press <kbd>W</kbd> or <kbd>↑</kbd> to move the player forwards.
 * press <kbd>S</kbd> or <kbd>↓</kbd> to move the player backwards.
-* press <kbd>A</kbd> or <kbd>←</kbd> pan the camera left.
-* press <kbd>D</kbd> or <kbd>→</kbd> pan the camera right.
+* press <kbd>A</kbd> or <kbd>←</kbd> to pan the camera left.
+* press <kbd>D</kbd> or <kbd>→</kbd> to pan the camera right.
+* press <kbd>ESC</kbd> to quit.
+* press <kbd>F</kbd> to toggle fullscreen.
 
 ## References
 

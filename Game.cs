@@ -298,6 +298,19 @@ public class Game : GameWindow
         {
             gameMap.SpinPlayer(rotSpeed);
         }
+
+
+        if (input.IsKeyPressed(Keys.F))
+        {
+            if(IsFullscreen)
+            {
+                WindowState = WindowState.Normal;
+            }
+            else
+            {
+                WindowState = WindowState.Fullscreen;
+            }
+        }
     }
 
 
