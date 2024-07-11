@@ -48,6 +48,10 @@ A kernel is used to detect the edges of the image.
 
 A kernel is used to emboss the image.
 
+### Chromatic Aberration
+
+A chromatic aberration effect is applied to the image.
+
 
 ## References
 

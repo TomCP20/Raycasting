@@ -32,17 +32,20 @@ vec3 convolution(float[9] kernel)
 
 void main()
 {
-    vec3 col = texture(screenTexture, TexCoords).rgb;
+
     if (mode == 0)
     {
+        vec3 col = texture(screenTexture, TexCoords).rgb;
         FragColor = vec4(col, 1.0);
     } 
     else if (mode == 1)
     {
+        vec3 col = texture(screenTexture, TexCoords).rgb;
         FragColor = vec4(1 - col, 1.0);
     } 
     else if (mode == 2)
     {
+        vec3 col = texture(screenTexture, TexCoords).rgb;
         float average = 0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b;
         FragColor = vec4(average, average, average, 1.0);
     }
@@ -83,5 +86,13 @@ void main()
              0,  1, 2
         );
         FragColor = vec4(convolution(kernel), 1.0);
+    }
+    else if (mode == 7)
+    {
+        float amount = 10.0;
+        float r = texture(screenTexture, TexCoords-vec2(amount/screenSize.x, 0.0)).r;
+        float g = texture(screenTexture, TexCoords).g;
+        float b = texture(screenTexture, TexCoords+vec2(amount/screenSize.x, 0.0)).b;
+        FragColor = vec4(r, g, b, 1.0);
     }
 }
