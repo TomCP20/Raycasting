@@ -105,10 +105,10 @@ void main()
     }
     else if (mode == 7)
     {
-        float amount = 10.0;
-        float r = texture(screenTexture, TexCoords-vec2(amount/screenSize.x, 0.0)).r;
+        float amount = 1.0/100.0;
+        float r = texture(screenTexture, TexCoords-vec2(amount, 0.0)).r;
         float g = texture(screenTexture, TexCoords).g;
-        float b = texture(screenTexture, TexCoords+vec2(amount/screenSize.x, 0.0)).b;
+        float b = texture(screenTexture, TexCoords+vec2(amount, 0.0)).b;
         FragColor = vec4(r, g, b, 1.0);
     }
     else if (mode == 8)
