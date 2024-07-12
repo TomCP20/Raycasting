@@ -52,6 +52,9 @@ A kernel is used to emboss the image.
 
 A chromatic aberration effect is applied to the image.
 
+### Colour Quantization
+
+The colour pallet of the image is reduced.
 
 ## References
 

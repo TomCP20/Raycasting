@@ -95,4 +95,10 @@ void main()
         float b = texture(screenTexture, TexCoords+vec2(amount/screenSize.x, 0.0)).b;
         FragColor = vec4(r, g, b, 1.0);
     }
+    else if (mode == 8)
+    {
+        float n = 3;
+        vec3 col = texture(screenTexture, TexCoords).rgb;
+        FragColor = vec4(floor(col * (n-1.0) + vec3(0.5))/(n-1.0), 1.0);
+    }
 }
