@@ -30,8 +30,24 @@ vec3 convolution(float[9] kernel)
     return col;
 }
 
+vec3 Quantization(float n, vec3 col)
+{
+    return floor(col * (n-1.0) + 0.5)/(n-1.0);
+}
+
+float Greyscale(vec3 col)
+{
+    return 0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b;
+}
+
 void main()
 {
+    const mat4 bayer4 = mat4(
+        0, 8, 2, 10,
+        12, 4, 14, 6,
+        3, 11, 1, 9,
+        15, 7, 13, 5
+    );
 
     if (mode == 0)
     {
@@ -51,7 +67,7 @@ void main()
     }
     else if (mode == 3)
     {
-        float kernel[9] = float[](
+        const float kernel[9] = float[](
             -1, -1, -1,
             -1,  9, -1,
             -1, -1, -1);
@@ -60,7 +76,7 @@ void main()
     }
     else if (mode == 4)
     {
-        float kernel[9] = float[](
+        const float kernel[9] = float[](
             1.0 / 16, 2.0 / 16, 1.0 / 16,
             2.0 / 16, 4.0 / 16, 2.0 / 16,
             1.0 / 16, 2.0 / 16, 1.0 / 16  
@@ -70,7 +86,7 @@ void main()
     }
     else if (mode == 5)
     {
-        float kernel[9] = float[](
+        const float kernel[9] = float[](
             1,  1, 1,
             1, -8, 1,
             1,  1, 1  
@@ -80,7 +96,7 @@ void main()
     }
     else if (mode == 6)
     {
-        float kernel[9] = float[](
+        const float kernel[9] = float[](
             -2, -1, 0,
             -1,  1, 1,
              0,  1, 2
@@ -97,8 +113,21 @@ void main()
     }
     else if (mode == 8)
     {
-        float n = 3;
         vec3 col = texture(screenTexture, TexCoords).rgb;
-        FragColor = vec4(floor(col * (n-1.0) + vec3(0.5))/(n-1.0), 1.0);
+        FragColor = vec4(Quantization(3, col), 1.0);
+    }
+    else if (mode == 9)
+    {
+        vec3 col = texture(screenTexture, TexCoords).rgb;
+        ivec2 pixelpos = ivec2(TexCoords*screenSize)%4;
+        float m = (bayer4[pixelpos.x][pixelpos.y]/16.0)-0.5;
+        FragColor = vec4(Quantization(2, col + m), 1.0);
+    }
+    else if (mode == 10)
+    {
+        vec3 col = texture(screenTexture, TexCoords).rgb;
+        ivec2 pixelpos = ivec2(TexCoords*screenSize)%4;
+        float m = (bayer4[pixelpos.x][pixelpos.y]/16.0)-0.5;
+        FragColor = vec4(Quantization(2, (vec3(Greyscale(col) + m))), 1.0);
     }
 }

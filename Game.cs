@@ -30,6 +30,8 @@ public class Game : GameWindow
 
     private int screenShaderMode = 0;
 
+    private const int screenShaderModeCount = 11;
+
     private readonly string[] paths =
     {
         "Textures/eagle.png",
@@ -318,7 +320,7 @@ public class Game : GameWindow
 
         if (input.IsKeyPressed(Keys.O))
         {
-            screenShaderMode = (screenShaderMode + 1) % 9;
+            screenShaderMode = (screenShaderMode + 1) % screenShaderModeCount;
             screenShader.SetInt("mode", screenShaderMode);
         }
     }

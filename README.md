@@ -56,6 +56,14 @@ A chromatic aberration effect is applied to the image.
 
 The colour pallet of the image is reduced.
 
+### Ordered Dithering
+
+A dithering effect is applied to the image.
+
+### Grey-Scale Ordered Dithering
+
+A dithering effect is applied to a greyscale version of the image.
+
 ## References
 
 [Lode's Computer Graphics Tutorial: Raycasting](https://lodev.org/cgtutor/raycasting.html)
