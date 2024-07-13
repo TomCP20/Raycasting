@@ -40,7 +40,7 @@ float Greyscale(vec3 col)
     return 0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b;
 }
 
-void main()
+vec3 Dither(vec3 col)
 {
     const mat4 bayer4 = mat4(
         0, 8, 2, 10,
@@ -48,7 +48,13 @@ void main()
         3, 11, 1, 9,
         15, 7, 13, 5
     );
+    ivec2 pixelpos = ivec2(TexCoords*screenSize)%4;
+    float m = (bayer4[pixelpos.x][pixelpos.y]/16.0)-0.5;
+    return col + m;
+}
 
+void main()
+{
     if (mode == 0)
     {
         vec3 col = texture(screenTexture, TexCoords).rgb;
@@ -119,15 +125,11 @@ void main()
     else if (mode == 9)
     {
         vec3 col = texture(screenTexture, TexCoords).rgb;
-        ivec2 pixelpos = ivec2(TexCoords*screenSize)%4;
-        float m = (bayer4[pixelpos.x][pixelpos.y]/16.0)-0.5;
-        FragColor = vec4(Quantization(2, col + m), 1.0);
+        FragColor = vec4(Quantization(2, Dither(col)), 1.0);
     }
     else if (mode == 10)
     {
         vec3 col = texture(screenTexture, TexCoords).rgb;
-        ivec2 pixelpos = ivec2(TexCoords*screenSize)%4;
-        float m = (bayer4[pixelpos.x][pixelpos.y]/16.0)-0.5;
-        FragColor = vec4(Quantization(2, (vec3(Greyscale(col) + m))), 1.0);
+        FragColor = vec4(Quantization(2, (Dither(vec3(Greyscale(col)) ))), 1.0);
     }
 }
