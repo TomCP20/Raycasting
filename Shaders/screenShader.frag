@@ -37,7 +37,7 @@ vec3 Quantization(float n, vec3 col)
 
 float Greyscale(vec3 col)
 {
-    return 0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b;
+    return dot(vec3(0.2126, 0.7152, 0.0722), col);
 }
 
 vec3 Dither(vec3 col)
@@ -67,7 +67,7 @@ void main()
     else if (mode == 2)
     {
         vec3 col = texture(screenTexture, TexCoords).rgb;
-        float average = 0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b;
+        float average = Greyscale(col);
         outCol = vec3(average);
     }
     else if (mode == 3)
