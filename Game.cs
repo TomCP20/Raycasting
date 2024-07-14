@@ -30,7 +30,7 @@ public class Game : GameWindow
 
     private int screenShaderMode = 0;
 
-    private const int screenShaderModeCount = 11;
+    private const int screenShaderModeCount = 12;
 
     private readonly string[] paths =
     {
