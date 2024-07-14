@@ -68,6 +68,14 @@ A dithering effect is applied to a greyscale version of the image.
 
 Scanlines are added to the image.
 
+### RGB Half-Tone
+
+A RGB halftone effect is applied to the image.
+
+### Grey-Scale Half-Tone
+
+A greyscale halftone effect is applied to the image.
+
 ## References
 
 [Lode's Computer Graphics Tutorial: Raycasting](https://lodev.org/cgtutor/raycasting.html)

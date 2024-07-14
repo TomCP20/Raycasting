@@ -53,22 +53,27 @@ vec3 Dither(vec3 col)
     return col + m;
 }
 
+vec3 Halftone(vec3 col)
+{
+    vec2 p = (TexCoords - 0.5) * screenSize;
+    return col * 10 - 5 + sin(p.x) * sin(p.y) * 4.0;
+}
+
 void main()
 {
+    vec3 col = texture(screenTexture, TexCoords).rgb;
     vec3 outCol;
     if (mode == 0)
     {
-        outCol = texture(screenTexture, TexCoords).rgb;
+        outCol = col;
     } 
     else if (mode == 1)
     {
-        outCol = 1 - texture(screenTexture, TexCoords).rgb;
+        outCol = 1 - col;
     } 
     else if (mode == 2)
     {
-        vec3 col = texture(screenTexture, TexCoords).rgb;
-        float average = Greyscale(col);
-        outCol = vec3(average);
+        outCol = vec3(Greyscale(col));
     }
     else if (mode == 3)
     {
@@ -110,28 +115,32 @@ void main()
     {
         float amount = 1.0/100.0;
         outCol.r = texture(screenTexture, TexCoords-vec2(amount, 0.0)).r;
-        outCol.g = texture(screenTexture, TexCoords).g;
+        outCol.g = col.g;
         outCol.b = texture(screenTexture, TexCoords+vec2(amount, 0.0)).b;
     }
     else if (mode == 8)
     {
-        vec3 col = texture(screenTexture, TexCoords).rgb;
         outCol = Quantization(3, col), 1.0;
     }
     else if (mode == 9)
     {
-        vec3 col = texture(screenTexture, TexCoords).rgb;
         outCol = Quantization(2, Dither(col));
     }
     else if (mode == 10)
     {
-        vec3 col = texture(screenTexture, TexCoords).rgb;
         outCol = Quantization(2, (Dither(vec3(Greyscale(col)) )));
     }
     else if (mode == 11)
     {
-        vec3 col = texture(screenTexture, TexCoords).rgb;
         outCol = col - sin(TexCoords.y*screenSize.y) * 0.1;
+    }
+    else if (mode == 12)
+    {
+        outCol = Halftone(col);
+    }
+    else if (mode == 13)
+    {
+        outCol = Halftone(vec3(Greyscale(col)));
     }
     FragColor = vec4(outCol, 1);
 }
