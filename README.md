@@ -4,9 +4,9 @@
 
 ## Build And Run
 
-To run this project use the command `dotnet run` in the base folder of the project.
+To run this project, use the command `dotnet run` in the project's base folder.
 
-To build this project use the command `dotnet build` in the base of folder the project.
+To build this project, use the command `dotnet build` in the project's base folder.
 
 ## Controls
 
